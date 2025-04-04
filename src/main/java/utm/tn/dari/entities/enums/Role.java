@@ -1,9 +1,8 @@
 package utm.tn.dari.entities.enums;
 
-
 public enum Role {
-    USER,
-    ADMIN,
-    CLIENT,
-    PROPRIETAIRE
+    ROLE_USER,
+    ROLE_ADMIN,
+    ROLE_CLIENT,
+    ROLE_PROPRIETAIRE
 }

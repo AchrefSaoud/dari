@@ -1,10 +1,12 @@
 package utm.tn.dari.modules.authentication.mappers;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import utm.tn.dari.entities.User;
+import utm.tn.dari.entities.enums.Role;
 import utm.tn.dari.modules.authentication.dtos.UserLoginResponseDTO;
 import utm.tn.dari.modules.authentication.dtos.UserRegistrationDTO;
 import utm.tn.dari.modules.authentication.dtos.UserRegistrationResponseDTO;
@@ -21,6 +23,13 @@ public class AuthMapper {
         user.setContrats(null);
         user.setBienImmobiliers(null);
         user.setVisites(null);
+
+        if (registrationDTO.getRoles() != null && !registrationDTO.getRoles().isEmpty()) {
+            user.setRoles(registrationDTO.getRoles());
+        } else {
+            user.setRoles(Set.of(Role.ROLE_USER));
+        }
+        
         return user;
     }
 
