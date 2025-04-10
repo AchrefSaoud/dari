@@ -12,7 +12,7 @@ import utm.tn.dari.modules.authentication.repositories.UserRepository;
 
 //user service mahich service reel mtea user mais just pour implementer l'interface UserDetailsService li nst77agouha fi spring security
 
-@Service
+@Service("securityUserService")
 @AllArgsConstructor
 public class UserService implements UserDetailsService {
 

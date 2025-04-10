@@ -7,7 +7,7 @@ import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.abonnement.repositories.AbonnementRepository;
 import utm.tn.dari.modules.authentication.repositories.UserRepository;
 
-@Service
+@Service("UserService")
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;

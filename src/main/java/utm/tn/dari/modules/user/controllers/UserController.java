@@ -20,7 +20,7 @@ import utm.tn.dari.modules.user.services.UserService;
 
 import java.util.Map;
 
-@RestController
+@RestController("userManagementController")
 @RequestMapping("/api/users")
 @Tag(name = "User Management", description = "Endpoints for managing user accounts and profiles")
 @SecurityRequirement(name = "bearerAuth") 
