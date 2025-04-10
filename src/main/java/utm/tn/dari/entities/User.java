@@ -61,4 +61,7 @@ public class User {
             .map(role -> new SimpleGrantedAuthority(role.name()))
             .collect(Collectors.toList());
     }
+    @OneToOne
+    @JoinColumn(name = "abonnement_id")
+    private Abonnement abonnement;
 }
