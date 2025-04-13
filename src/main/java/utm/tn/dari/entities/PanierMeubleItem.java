@@ -5,23 +5,23 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PanierMeuble {
+public class PanierMeubleItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    private User acheteur;
+    private Meuble meuble;
 
-    @OneToMany(mappedBy = "panier", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PanierMeubleItem> items;
+    private int quantite;
 
-    private float total;
+    private float sousTotal;
+
+    @ManyToOne
+    private PanierMeuble panier;
 }
