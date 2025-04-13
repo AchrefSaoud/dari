@@ -45,4 +45,15 @@ public class MeubleServiceImpl implements IMeubleService {
                 .map(MeubleMapper::toDto)
                 .orElse(null);
     }
+    @Override
+    public MeubleDTO modifierMeuble(Long id, MeubleDTO dto) {
+        Meuble meuble = meubleRepo.findById(id).orElseThrow();
+        meuble.setNom(dto.getNom());
+        meuble.setDescription(dto.getDescription());
+        meuble.setPrix(dto.getPrix());
+        meuble.setPhotoUrl(dto.getPhotoUrl());
+        meuble.setAdresse(dto.getAdresse());
+        return MeubleMapper.toDto(meubleRepo.save(meuble));
+    }
+
 }

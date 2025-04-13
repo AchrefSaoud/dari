@@ -30,4 +30,12 @@ public class MeubleController {
     public void delete(@PathVariable Long id) {
         meubleService.supprimerMeuble(id);
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<MeubleDTO> modifier(@PathVariable Long id, @RequestBody MeubleDTO dto) {
+        return ResponseEntity.ok(meubleService.modifierMeuble(id, dto));
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<MeubleDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(meubleService.getById(id));
+    }
 }
