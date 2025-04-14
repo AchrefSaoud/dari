@@ -21,7 +21,7 @@ public class AuthMapper {
         user.setNom(registrationDTO.getNom());
         user.setTelephone(registrationDTO.getTelephone());
         user.setContrats(null);
-        user.setBienImmobiliers(null);
+        user.setAnnonces(null);
         user.setVisites(null);
 
         if (registrationDTO.getRoles() != null && !registrationDTO.getRoles().isEmpty()) {
