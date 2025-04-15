@@ -34,6 +34,7 @@ public class AnnonceController {
 
     @Autowired
     private AnnonceService annonceService;
+    final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @Operation(
@@ -66,7 +67,6 @@ public class AnnonceController {
                     content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE))
             @RequestPart(value = "files", required = false) MultipartFile[] files) {
         try {
-            final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
             if (files != null) {
                 for (MultipartFile file : files) {
                     if (file.getSize() > MAX_FILE_SIZE) {
@@ -157,7 +157,6 @@ public class AnnonceController {
 
 
     @PreAuthorize("hasRole('ROLE_USER')")
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "Récupérer une annonce par son ID",
             description = "Cette méthode permet de récupérer une annonce en fonction de son ID.",
@@ -191,7 +190,6 @@ public class AnnonceController {
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
-
     @Operation(
             summary = "Mettre à jour une annonce",
             description = "Cette méthode permet de mettre à jour une annonce avec des fichiers joints.",
@@ -219,6 +217,13 @@ public class AnnonceController {
             @RequestPart("data") String annonceDTOJson,
             @RequestPart(value = "files", required = false) MultipartFile[] files) {
         try {
+            if (files != null) {
+                for (MultipartFile file : files) {
+                    if (file.getSize() > MAX_FILE_SIZE) {
+                        return ResponseEntity.status(400).body("File size exceeds the maximum allowed limit of 5MB: " + file.getOriginalFilename());
+                    }
+                }
+            }
 
             ObjectMapper objectMapper = new ObjectMapper();
             AnnonceDTO annonceDTO = objectMapper.readValue(annonceDTOJson, AnnonceDTO.class);
@@ -242,8 +247,6 @@ public class AnnonceController {
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
-    @SecurityRequirement(name = "bearerAuth")
-
     @Operation(
             summary = "Supprimer une annonce",
             description = "Cette méthode permet de supprimer une annonce en fonction de son ID.",

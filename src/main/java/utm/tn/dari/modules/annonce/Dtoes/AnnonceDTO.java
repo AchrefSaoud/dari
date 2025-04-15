@@ -1,6 +1,7 @@
 package utm.tn.dari.modules.annonce.Dtoes;
 
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AnnonceDTO {
+    @Schema(hidden = true)
+
     Long id;
     String titre;
     String description;
@@ -24,6 +27,7 @@ public class AnnonceDTO {
     Long userId;
     Double longitude;
     Double latitude;
+    @Schema(hidden = true)
     List<String> attachmentPaths;
 
 
