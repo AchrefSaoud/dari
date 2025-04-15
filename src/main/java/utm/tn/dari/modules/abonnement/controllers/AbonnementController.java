@@ -1,6 +1,8 @@
 package utm.tn.dari.modules.abonnement.controllers;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/abonnements")
 @SecurityRequirement(name = "bearerAuth") 
 @RequiredArgsConstructor
+@Slf4j
 public class AbonnementController {
     private final AbonnementService abonnementService;
 
@@ -58,6 +61,7 @@ public class AbonnementController {
             abonnementService.deleteAbonnement(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
+            log.error("the error", e);
             return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body("Échec de la suppression de l'abonnement : " + e.getMessage());
