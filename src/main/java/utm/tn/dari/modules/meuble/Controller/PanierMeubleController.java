@@ -41,15 +41,6 @@ public class PanierMeubleController {
         panierService.supprimerPanier(id);
         return ResponseEntity.noContent().build();
     }
-//un pb lorsque qte =1!!
-
-    @PostMapping("/{panierId}/ajouter-meuble/{meubleId}")
-    public ResponseEntity<PanierDTO> ajouter(
-            @PathVariable Long panierId,
-            @PathVariable Long meubleId,
-            @RequestParam int quantite) {
-        return ResponseEntity.ok(panierService.ajouterMeubleAuPanier(panierId, meubleId, quantite));
-    }
     @DeleteMapping("/{panierId}/retirer-meuble/{meubleId}")
     public ResponseEntity<PanierDTO> retirer(
             @PathVariable Long panierId,
@@ -59,8 +50,9 @@ public class PanierMeubleController {
     @PostMapping("/{panierId}/ajouter-meuble/{meubleId}")
     public ResponseEntity<PanierDTO> ajouterMeubleAuPanier(
             @PathVariable Long panierId,
-            @PathVariable Long meubleId) {
-        return ResponseEntity.ok(panierService.ajouterMeubleAuPanier(panierId, meubleId));
+            @PathVariable Long meubleId,
+            @RequestParam(required = false, defaultValue = "1") int quantite) {
+        return ResponseEntity.ok(panierService.ajouterMeubleAuPanier(panierId, meubleId, quantite));
     }
 
 }

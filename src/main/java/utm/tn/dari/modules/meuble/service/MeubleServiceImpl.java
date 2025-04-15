@@ -45,6 +45,7 @@ public class MeubleServiceImpl implements IMeubleService {
                 .map(MeubleMapper::toDto)
                 .orElse(null);
     }
+    
     @Override
     public MeubleDTO modifierMeuble(Long id, MeubleDTO dto) {
         Meuble meuble = meubleRepo.findById(id).orElseThrow();
