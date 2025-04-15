@@ -157,6 +157,7 @@ public class AnnonceController {
 
 
     @PreAuthorize("hasRole('ROLE_USER')")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "Récupérer une annonce par son ID",
             description = "Cette méthode permet de récupérer une annonce en fonction de son ID.",
@@ -190,6 +191,7 @@ public class AnnonceController {
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
+
     @Operation(
             summary = "Mettre à jour une annonce",
             description = "Cette méthode permet de mettre à jour une annonce avec des fichiers joints.",
@@ -217,9 +219,14 @@ public class AnnonceController {
             @RequestPart("data") String annonceDTOJson,
             @RequestPart(value = "files", required = false) MultipartFile[] files) {
         try {
+
             ObjectMapper objectMapper = new ObjectMapper();
             AnnonceDTO annonceDTO = objectMapper.readValue(annonceDTOJson, AnnonceDTO.class);
-            return ResponseEntity.ok(annonceService.updateAnnonce(id, annonceDTO, List.of(files)));
+            List<MultipartFile> multipartFiles = new ArrayList<>();
+            if(files != null){
+                multipartFiles = List.of(files);
+            }
+            return ResponseEntity.ok(annonceService.updateAnnonce(id, annonceDTO, multipartFiles));
         } catch (Exception e) {
             if (e instanceof FileSavingException) {
                 return ResponseEntity.status(400).body(e.getMessage());
@@ -235,6 +242,8 @@ public class AnnonceController {
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
+    @SecurityRequirement(name = "bearerAuth")
+
     @Operation(
             summary = "Supprimer une annonce",
             description = "Cette méthode permet de supprimer une annonce en fonction de son ID.",

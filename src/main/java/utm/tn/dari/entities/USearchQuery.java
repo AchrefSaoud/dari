@@ -2,6 +2,7 @@ package utm.tn.dari.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import utm.tn.dari.entities.enums.StatusAnnonce;
 import utm.tn.dari.entities.enums.TypeAnnonce;
 
@@ -22,6 +23,7 @@ public class USearchQuery {
     private Double latitude;
     private Double longitude;
     private Double radius;
+    @CreationTimestamp()
     private LocalDateTime createdAt;
 
     @ManyToOne(targetEntity = User.class)

@@ -125,6 +125,7 @@ public class AnnonceService {
                     .latitude(annonce.getLatitude())
                     .status(annonce.getStatus())
                     .userId(user.getId())
+                    .attachmentPaths(annonce.getAttachmentPaths())
                     .build();
 
             AnnoncePostedEvent annoncePostedEvent = new AnnoncePostedEvent(
