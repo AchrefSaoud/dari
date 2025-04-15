@@ -25,7 +25,10 @@ public class AbonnementService {
     public Abonnement createAbonnement(Abonnement abonnement) {
         return abonnementRepository.save(abonnement);
     }
-
+    public Abonnement getAbonnementById(Long id) {
+        return abonnementRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Abonnement not found with id: " + id));
+    }
     public Abonnement updateAbonnement(Long id, Abonnement partialAbonnement) {
         log.info("Attempting to update abonnement with id: {}", id);
         return abonnementRepository.findById(id).map(existingAbonnement -> {
