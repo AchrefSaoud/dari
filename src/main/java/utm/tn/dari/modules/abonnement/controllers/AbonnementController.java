@@ -1,6 +1,7 @@
 package utm.tn.dari.modules.abonnement.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class AbonnementController {
+
+    @Autowired
     private final AbonnementService abonnementService;
 
     @PostMapping("/create")
