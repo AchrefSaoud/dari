@@ -12,4 +12,6 @@ public class AbonnementDto {
     private String description;
     private BigDecimal prix;
     private TypeAbonnement type;
+    private Double averageRating;
+    private Integer ratingCount;
 }

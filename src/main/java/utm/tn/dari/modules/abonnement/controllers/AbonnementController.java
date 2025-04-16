@@ -13,9 +13,11 @@ import utm.tn.dari.entities.Abonnement;
 import utm.tn.dari.entities.enums.TypeAbonnement;
 import utm.tn.dari.modules.abonnement.dtos.AbonnementCreateDto;
 import utm.tn.dari.modules.abonnement.dtos.AbonnementDto;
+import utm.tn.dari.modules.abonnement.dtos.RatingDto;
 import utm.tn.dari.modules.abonnement.mappers.AbonnementMapper;
 import utm.tn.dari.modules.abonnement.services.AbonnementService;
 import org.springframework.web.multipart.MultipartFile;
+import utm.tn.dari.modules.abonnement.services.RatingService;
 import utm.tn.dari.modules.user.exceptions.ResourceNotFoundException;
 
 import java.io.File;
@@ -24,10 +26,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/abonnements")
@@ -36,7 +40,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AbonnementController {
     private final AbonnementService abonnementService;
-
+    private final RatingService ratingService;
     @PostMapping("/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> create(@RequestBody AbonnementCreateDto dto) {
@@ -214,5 +218,24 @@ public class AbonnementController {
                 .map(AbonnementMapper::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(abonnements);
+    }
+    @GetMapping("/{id}/ratings")
+    public ResponseEntity<?> getAbonnementRatings(@PathVariable Long id) {
+        try {
+            List<RatingDto> ratings = ratingService.getRatingsForAbonnement(id);
+            return ResponseEntity.ok(ratings);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/average-rating")
+    public ResponseEntity<?> getAbonnementAverageRating(@PathVariable Long id) {
+        try {
+            Double average = ratingService.getAverageRating(id);
+            return ResponseEntity.ok(Collections.singletonMap("averageRating", average));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
