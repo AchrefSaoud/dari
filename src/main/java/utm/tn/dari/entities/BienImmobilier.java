@@ -39,8 +39,5 @@ public class BienImmobilier {
     @ToString.Exclude
     private User proprietaire;
 
-    @OneToMany(mappedBy = "bienImmobilier", fetch = FetchType.LAZY)
-    @JsonManagedReference
-    @ToString.Exclude
-    private List<Annonce> annonces;
+
 }

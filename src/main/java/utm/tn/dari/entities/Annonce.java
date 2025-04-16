@@ -8,13 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.data.geo.Point;
 import utm.tn.dari.entities.enums.StatusAnnonce;
 import utm.tn.dari.entities.enums.TypeAnnonce;
+import utm.tn.dari.modules.location.entities.DemandeLocation;
 
-@Entity
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "annonce")
+@Entity
+
 public class Annonce {
 
     @Id
@@ -33,18 +36,29 @@ public class Annonce {
     @Enumerated(EnumType.STRING) 
     private TypeAnnonce type;
 
-    @ElementCollection 
-    private List<String> videos;
+    private Double latitude;
+
+    private Double longitude;
+
+
+
 
     @ElementCollection 
-    private List<String> photos;
+    private List<String> attachmentPaths;
+
+
+
 
     @Enumerated(EnumType.STRING)
     private StatusAnnonce status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bien_immobilier_id")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "annonce")
     @JsonBackReference
     @ToString.Exclude
-    private BienImmobilier bienImmobilier;
+    private List<DemandeLocation> demandeLocations;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
+    @ToString.Exclude
+    private User user;
 }

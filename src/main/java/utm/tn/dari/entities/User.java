@@ -48,9 +48,9 @@ public class User {
     @JsonManagedReference
     private List<Contrat> contrats;
 
-    @OneToMany(mappedBy = "proprietaire", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<BienImmobilier> bienImmobiliers;
+    private List<Annonce> annonces;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -61,7 +61,8 @@ public class User {
             .map(role -> new SimpleGrantedAuthority(role.name()))
             .collect(Collectors.toList());
     }
-    @OneToOne
+    
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "abonnement_id")
     private Abonnement abonnement;
 }

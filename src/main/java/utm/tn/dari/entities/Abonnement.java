@@ -5,6 +5,9 @@ import lombok.NoArgsConstructor;
 import utm.tn.dari.entities.enums.TypeAbonnement;
 import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 @Data
 @Entity
 @NoArgsConstructor
@@ -23,4 +26,8 @@ public class Abonnement {
 
     @Enumerated(EnumType.STRING)
     private TypeAbonnement type; // BASIC, STANDARD, PREMIUM
+
+    @OneToMany(mappedBy = "abonnement", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Set<User> users;
 }
