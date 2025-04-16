@@ -8,7 +8,8 @@ public class MeubleDTO {
     private String nom;
     private String description;
     private float prix;
-    private String photoUrl;
     private String adresse;
+    private String photoUrl;
     private Long vendeurId;
+    private String vendeurUsername;
 }
