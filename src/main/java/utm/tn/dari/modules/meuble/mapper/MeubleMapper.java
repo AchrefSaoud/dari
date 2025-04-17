@@ -1,7 +1,6 @@
 package utm.tn.dari.modules.meuble.mapper;
 
 import utm.tn.dari.entities.Meuble;
-import utm.tn.dari.entities.Meuble;
 import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.meuble.dto.MeubleCreateDTO;
 import utm.tn.dari.modules.meuble.dto.MeubleDTO;

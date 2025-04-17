@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import utm.tn.dari.entities.Meuble;
 import utm.tn.dari.entities.User;
-import utm.tn.dari.modules.meuble.service.AuthenticationUtils;
 import utm.tn.dari.modules.meuble.dto.MeubleCreateDTO;
 import utm.tn.dari.modules.meuble.dto.MeubleDTO;
 import utm.tn.dari.modules.meuble.mapper.MeubleMapper;

@@ -2,6 +2,8 @@ package utm.tn.dari.modules.meuble.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
 import utm.tn.dari.entities.Meuble;
 import utm.tn.dari.entities.PanierMeuble;
 import utm.tn.dari.entities.PanierMeubleItem;
@@ -17,6 +19,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class PanierMeubleServiceImpl implements IPanierMeubleService {
 
     @Autowired
@@ -30,9 +33,10 @@ public class PanierMeubleServiceImpl implements IPanierMeubleService {
 
     @Override
     public PanierDTO ajouterPanier(PanierDTO dto) {
+        System.out.println("DTO: " + dto);
         User acheteur = userRepo.findById(dto.getAcheteurId()).orElseThrow(() -> new RuntimeException("Acheteur non trouvable"));
         PanierMeuble panier = PanierMeubleMapper.toEntity(dto, acheteur);
-        panier.setTotal(0); // Initialiser à 0
+        panier.setTotal(dto.getTotal());
         panier = panierRepo.save(panier);
         return PanierMeubleMapper.toDto(panier);
     }
@@ -53,11 +57,20 @@ public class PanierMeubleServiceImpl implements IPanierMeubleService {
 
     @Override
     public PanierDTO modifierPanier(Long id, PanierDTO dto) {
-        PanierMeuble panier = panierRepo.findById(id).orElseThrow(()-> new RuntimeException("Panier non trouvé"));;
-        panier.setItems(PanierMeubleMapper.mapItems(dto.getItems(), panier));
+        PanierMeuble panier = panierRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Panier non trouvé"));
+    
+        if (dto.getItems() != null) {
+            panier.getItems().clear();
+            panier.getItems().addAll(PanierMeubleMapper.mapItems(dto.getItems(), panier));
+        }
+        
         panier.setTotal(
-                panier.getItems().stream().map(PanierMeubleItem::getSousTotal).reduce(0f, Float::sum)
+            panier.getItems().stream()
+                .map(PanierMeubleItem::getSousTotal)
+                .reduce(0f, Float::sum)
         );
+        
         return PanierMeubleMapper.toDto(panierRepo.save(panier));
     }
 
