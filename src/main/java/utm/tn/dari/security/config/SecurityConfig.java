@@ -46,6 +46,7 @@ public class SecurityConfig {
                     "/webjars/**"
                 ).permitAll()
                 .requestMatchers("/api/credit/**").permitAll()
+                .requestMatchers("/api/chatbot/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()
             )
