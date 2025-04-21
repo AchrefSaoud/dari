@@ -5,7 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import utm.tn.dari.entities.*;
 import utm.tn.dari.modules.achat.repositories.RechercheAchatRepository;
-import utm.tn.dari.repositories.*;
+import utm.tn.dari.modules.annonce.repositories.AnnonceRepository;
+import utm.tn.dari.*;
 
 import java.util.List;
 
