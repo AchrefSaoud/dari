@@ -61,7 +61,11 @@ public class AbonnementService {
         });
         
         abonnementRepository.delete(abonnement);
-    } 
+    }
+
+    public boolean existsById(Long id) {
+        return abonnementRepository.existsById(id);
+    }
     public List<Abonnement> getAllAbonnements() {
         return abonnementRepository.findAll();
     }
