@@ -99,7 +99,7 @@ public class AnnonceController {
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @Operation(summary = "Récupérer une annonce par son ID",
-            description = "Cette méthode permet de récupérer une annonce en fonction de son ID."
+            description = "Cette méthode permet de récupérer des annonce."
             ,responses = {
             @ApiResponse(responseCode = "200", description = "Annonces retournées avec succès"),
             @ApiResponse(responseCode = "400", description = "Requête invalide "),
