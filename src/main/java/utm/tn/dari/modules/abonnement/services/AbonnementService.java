@@ -24,6 +24,7 @@ public class AbonnementService {
     private final UserRepository userRepository; 
 private final SmsService smsService;
 private final PdfService pdfService;
+private final EmailService emailService;
     public Abonnement createAbonnement(Abonnement abonnement) {
 
 
@@ -39,6 +40,11 @@ private final PdfService pdfService;
             // Numéro du client à personnaliser
             String userPhoneNumber = "+216xxxxxxxx";
             smsService.sendSms(userPhoneNumber, message);
+        String emailSubject = "Confirmation de votre abonnement";
+        String emailText = "Veuillez trouver ci-joint les détails de votre abonnement.";
+        String userEmail = "client@example.com"; // À remplacer par l'email réel de l'utilisateur
+
+        emailService.sendEmailWithAttachment(userEmail, emailSubject, emailText, pdfPath);
 
             return saved;
         }
