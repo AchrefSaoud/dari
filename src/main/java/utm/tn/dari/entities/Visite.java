@@ -1,38 +1,94 @@
 package utm.tn.dari.entities;
 
-import java.util.Date;
-
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
-@Data
+import java.time.LocalDateTime;
+
 @Entity
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
-public class Visite {
+@NoArgsConstructor
 
+@Table(name = "Visite")
+public class Visite {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "visite_id")
     private Long id;
 
-    @Column(name = "date_visite")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date dateVisite;
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private User owner;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    @JsonBackReference
-    @ToString.Exclude
-    private User user;
+    @ManyToOne
+    @JoinColumn(name = "Annonce_id")
+    private Annonce annonce;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bien_immobilier_id")
-    @JsonBackReference
-    @ToString.Exclude
-    private BienImmobilier bienImmobilier;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    private User client;
+
+    public Visite(User owner, Annonce annonce, LocalDateTime startTime, LocalDateTime endTime) {
+        this.owner = owner;
+        this.annonce = annonce;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+    public boolean isAvailable() {
+        return client == null && startTime.isAfter(LocalDateTime.now());
+    }
+    public boolean isOwnedBy(Long userId) {
+        return owner != null && owner.getId().equals(userId);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Annonce getAnnonce() {
+        return annonce;
+    }
+
+    public void setAnnonce(Annonce annonce) {
+        this.annonce = annonce;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public User getClient() {
+        return client;
+    }
+
+    public void setClient(User client) {
+        this.client = client;
+    }
 }
