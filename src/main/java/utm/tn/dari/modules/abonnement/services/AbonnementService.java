@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import utm.tn.dari.entities.Abonnement;
 import utm.tn.dari.entities.User;
+import utm.tn.dari.modules.abonnement.mappers.AbonnementMapper;
 import utm.tn.dari.modules.abonnement.repositories.AbonnementRepository;
 import utm.tn.dari.modules.authentication.repositories.UserRepository;
 import utm.tn.dari.modules.user.exceptions.ResourceNotFoundException;
@@ -21,11 +22,34 @@ import java.util.List;
 public class AbonnementService {
     private final AbonnementRepository abonnementRepository;
     private final UserRepository userRepository; 
-
+    private final SmsService smsService;
+    private final PdfService pdfService;
+    private final EmailService emailService;
     public Abonnement createAbonnement(Abonnement abonnement) {
-        return abonnementRepository.save(abonnement);
-    }
-    public Abonnement getAbonnementById(Long id) {
+
+
+            Abonnement saved = abonnementRepository.save(abonnement);
+        String pdfPath = pdfService.generateAbonnementPdf(saved);
+        System.out.println("PDF généré à : " + pdfPath);
+
+
+        // Ici tu envoies le SMS
+            String message = String.format("Merci pour votre abonnement de type %s à %.2f DT.",
+                    saved.getType(), saved.getPrix());
+
+            // Numéro du client à personnaliser
+            String userPhoneNumber = "+21699263050";
+            smsService.sendSms(userPhoneNumber, message);
+        String emailSubject = "Confirmation de votre abonnement";
+        String emailText = "Veuillez trouver ci-joint les détails de votre abonnement.";
+        String userEmail = "jdiditasnim@gmail.com"; // À remplacer par l'email réel de l'utilisateur
+
+        emailService.sendEmailWithAttachment(userEmail, emailSubject, emailText, pdfPath);
+
+            return saved;
+        }
+
+        public Abonnement getAbonnementById(Long id) {
         return abonnementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Abonnement not found with id: " + id));
     }
