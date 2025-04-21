@@ -23,6 +23,7 @@ import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.Dtoes.USearchQueryDTO;
 import utm.tn.dari.modules.annonce.events.AnnoncePostedEvent;
 import utm.tn.dari.modules.annonce.events.NewQueryEvent;
+import utm.tn.dari.modules.annonce.events.PriceChangedEvent;
 import utm.tn.dari.modules.annonce.exceptions.FileSavingException;
 import utm.tn.dari.modules.annonce.exceptions.ObjectNotFoundException;
 import utm.tn.dari.modules.annonce.exceptions.UnthorizedActionException;
@@ -211,20 +212,23 @@ public class AnnonceService {
             throw new Exception("Error while deleting the file");
         }
     }
-    public AnnonceDTO updateAnnonce(Long annonceId,AnnonceDTO annonceDTO,List<MultipartFile> attachments) throws Exception {
-       List<String> attachmentPaths = new ArrayList<>();
-        try {
-            org.springframework.security.core.userdetails.User userObject = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+    public AnnonceDTO updateAnnonce(Long annonceId, AnnonceDTO annonceDTO, List<MultipartFile> attachments) throws Exception {
+        List<String> attachmentPaths = new ArrayList<>();
+        try {
+            org.springframework.security.core.userdetails.User userObject = (org.springframework.security.core.userdetails.User) SecurityContextHolder
+                    .getContext()
+                    .getAuthentication()
+                    .getPrincipal();
             String username = userObject.getUsername();
 
+            Annonce annonce = annonceRepository.findById(annonceId)
+                    .orElseThrow(() -> new ObjectNotFoundException("Annonce n'existe pas"));
 
+            // Store the old price for comparison
+            float oldPrice = annonce.getPrix();
 
-
-
-
-            Annonce annonce = annonceRepository.findById(annonceId).orElseThrow(() -> new ObjectNotFoundException("Annonce n'existe pas"));
-
+            // Process attachments as before
             for (MultipartFile attachment : attachments) {
                 String randomString = java.util.UUID.randomUUID().toString();
                 String filePath = null;
@@ -232,38 +236,46 @@ public class AnnonceService {
                     filePath = saveFile(attachment, randomString);
                 } catch (Exception e) {
                     if (e instanceof FileSavingException) {
-                        throw  e;
+                        throw e;
                     }
                 }
                 attachmentPaths.add(filePath);
             }
 
-            if(annonce.getUser().getUsername().equals(username)) {
-                if(annonceDTO.getTitre() != null) {
+            if (annonce.getUser().getUsername().equals(username)) {
+                if (annonceDTO.getTitre() != null) {
                     annonce.setTitre(annonceDTO.getTitre());
                 }
-                if(annonceDTO.getDescription() != null) {
+                if (annonceDTO.getDescription() != null) {
                     annonce.setDescription(annonceDTO.getDescription());
                 }
-                if(annonceDTO.getPrix() != 0) {
+
+                // Check if price is being updated
+                boolean priceChanged = annonceDTO.getPrix() != 0 && annonceDTO.getPrix() != oldPrice;
+                if (priceChanged) {
                     annonce.setPrix(annonceDTO.getPrix());
                 }
-                if(annonceDTO.getType() != null) {
+
+                // Rest of your existing update logic
+                if (annonceDTO.getType() != null) {
                     annonce.setType(annonceDTO.getType());
                 }
-                if(annonceDTO.getStatus() != null) {
+                if (annonceDTO.getStatus() != null) {
                     annonce.setStatus(annonceDTO.getStatus());
                 }
-                if(annonceDTO.getLatitude() != null && annonceDTO.getLongitude() != null) {
+                if (annonceDTO.getLatitude() != null && annonceDTO.getLongitude() != null) {
                     annonce.setLatitude(annonceDTO.getLatitude());
                     annonce.setLongitude(annonceDTO.getLongitude());
                 }
                 if (!attachmentPaths.isEmpty()) {
                     annonce.getAttachmentPaths().addAll(attachmentPaths);
                 }
+
+                // Save the updated annonce
                 annonce = annonceRepository.save(annonce);
 
-                return AnnonceDTO.builder()
+                // Build the DTO to return
+                AnnonceDTO updatedAnnonceDTO = AnnonceDTO.builder()
                         .userId(annonce.getUser().getId())
                         .status(annonce.getStatus())
                         .description(annonce.getDescription())
@@ -276,22 +288,30 @@ public class AnnonceService {
                         .titre(annonce.getTitre())
                         .build();
 
+                // If price changed, publish event
+                if (priceChanged) {
+                    PriceChangedEvent priceChangedEvent = new PriceChangedEvent(
+                            this,
+                            updatedAnnonceDTO,
+                            oldPrice,
+                            annonceDTO.getPrix()
+                    );
+                    this.applicationEventPublisher.publishEvent(priceChangedEvent);
+                }
 
-
+                return updatedAnnonceDTO;
             } else {
                 throw new UnthorizedActionException("Vous n'avez pas le droit de modifier cette annonce");
             }
-
-
         } catch (Exception e) {
             deleteAttachmentFiles(attachmentPaths);
-            if(e instanceof ObjectNotFoundException) {
+            if (e instanceof ObjectNotFoundException) {
                 throw e;
             }
-            if(e instanceof FileSavingException) {
+            if (e instanceof FileSavingException) {
                 throw e;
             }
-            throw  new Exception("Error while updating the annonce");
+            throw new Exception("Error while updating the annonce");
         }
     }
 

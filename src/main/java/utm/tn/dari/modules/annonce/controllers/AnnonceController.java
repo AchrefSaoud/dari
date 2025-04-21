@@ -211,7 +211,7 @@ public class AnnonceController {
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             }
     )
-    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateAnnonce(
             @PathVariable Long id,
             @RequestPart("data") String annonceDTOJson,
