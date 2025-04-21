@@ -5,10 +5,14 @@ import jakarta.validation.constraints.Min;
 import lombok.Data;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
 @Data
 public class RatingCreateDto {
     @NotNull
     private Long abonnementId;
+
+    @NotNull
+    private Long userId;  
 
     @NotNull
     @Min(1)

@@ -2,7 +2,6 @@ package utm.tn.dari.modules.abonnement.services;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import utm.tn.dari.entities.Abonnement;
 import utm.tn.dari.entities.Rating;
@@ -13,28 +12,24 @@ import utm.tn.dari.modules.abonnement.repositories.RatingRepository;
 import utm.tn.dari.modules.user.exceptions.ResourceNotFoundException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-@Slf4j
 public class RatingService {
     private final RatingRepository ratingRepository;
     private final AbonnementService abonnementService;
     private final UserService userService;
 
-    public RatingDto createRating(RatingCreateDto dto, Long userId) {
-        // Vérifie si l'utilisateur existe
-        User user = userService.getUserById(userId);
+    public RatingDto createRating(RatingCreateDto dto) {
 
-        // Vérifie si l'abonnement existe
+        User user = userService.getUserById(dto.getUserId());
+        
         Abonnement abonnement = abonnementService.getAbonnementById(dto.getAbonnementId());
 
-        // Vérifie si l'utilisateur a déjà noté cet abonnement
-        if (ratingRepository.existsByAbonnementIdAndUserId(dto.getAbonnementId(), userId)) {
-            throw new IllegalStateException("Vous avez déjà noté cet abonnement");
+        if (ratingRepository.existsByAbonnementIdAndUserId(dto.getAbonnementId(), dto.getUserId())) {
+            throw new IllegalStateException("User has already rated this subscription");
         }
 
         Rating rating = new Rating();

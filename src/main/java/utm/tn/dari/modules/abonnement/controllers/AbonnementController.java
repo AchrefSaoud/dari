@@ -212,30 +212,12 @@ public class AbonnementController {
     }
 
     @GetMapping("/list")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<AbonnementDto>> list() {
         List<AbonnementDto> abonnements = abonnementService.getAllAbonnements()
                 .stream()
                 .map(AbonnementMapper::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(abonnements);
-    }
-    @GetMapping("/{id}/ratings")
-    public ResponseEntity<?> getAbonnementRatings(@PathVariable Long id) {
-        try {
-            List<RatingDto> ratings = ratingService.getRatingsForAbonnement(id);
-            return ResponseEntity.ok(ratings);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @GetMapping("/{id}/average-rating")
-    public ResponseEntity<?> getAbonnementAverageRating(@PathVariable Long id) {
-        try {
-            Double average = ratingService.getAverageRating(id);
-            return ResponseEntity.ok(Collections.singletonMap("averageRating", average));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
     }
 }

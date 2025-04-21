@@ -1,17 +1,12 @@
 package utm.tn.dari.modules.abonnement.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import utm.tn.dari.security.CurrentUser;
-import utm.tn.dari.security.UserPrincipal;
 import utm.tn.dari.modules.abonnement.dtos.RatingCreateDto;
 import utm.tn.dari.modules.abonnement.dtos.RatingDto;
 import utm.tn.dari.modules.abonnement.services.RatingService;
@@ -26,21 +21,14 @@ import java.util.Map;
 @SecurityRequirement(name = "bearerAuth")
 public class RatingController {
     private final RatingService ratingService;
-    private Logger log;
 
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_CLIENT')")
     @Operation(summary = "Create a new rating")
-    public ResponseEntity<?> createRating(@RequestBody @Valid RatingCreateDto dto,
-                                          @CurrentUser UserPrincipal currentUser , @Parameter(hidden = true) @RequestParam(required = false) Map<String,String> allParams)
-    {
-        log.info("Creating rating for abonnement {} by user {}",
-                dto.getAbonnementId(), currentUser.getId());
+    public ResponseEntity<?> createRating(@RequestBody @Valid RatingCreateDto dto) {
         try {
-            RatingDto created = ratingService.createRating(dto, currentUser.getId());
+            RatingDto created = ratingService.createRating(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (Exception e) {
-            log.error("Rating creation failed", e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
