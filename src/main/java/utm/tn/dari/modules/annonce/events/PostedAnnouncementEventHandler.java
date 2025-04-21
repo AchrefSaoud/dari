@@ -2,6 +2,7 @@ package utm.tn.dari.modules.annonce.events;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
@@ -28,6 +29,7 @@ public class PostedAnnouncementEventHandler {
 
     }
 
+    @Async
     public void runUSearchQueryScanning(AnnonceDTO annonce) {
 
 

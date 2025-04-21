@@ -2,6 +2,7 @@ package utm.tn.dari.modules.annonce.services;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import utm.tn.dari.entities.Annonce;
 import utm.tn.dari.entities.USearchQuery;
@@ -22,7 +23,8 @@ public class USearchQueryService {
     @Autowired
     AnnonceService  annonceService;
 
-    public USearchQueryDTO saveUSearchQuery(USearchQueryDTO uSearchQueryDTO) throws Exception {
+    @Async
+    public void saveUSearchQuery(USearchQueryDTO uSearchQueryDTO) throws Exception {
 
         // Check if the user exists
         if(uSearchQueryDTO.getUserId() == null) {
@@ -50,7 +52,5 @@ public class USearchQueryService {
         this.uSearchQueryRepository.save(uSearchQuery);
 
 
-
-        return uSearchQueryDTO;
     }
 }

@@ -9,14 +9,24 @@ import utm.tn.dari.entities.Annonce;
 import utm.tn.dari.entities.USearchQuery;
 
 public class UQuerySearchSpecification {
-    public static Specification<USearchQuery> filterByDescription(String description){
-        return (root, query, criteriaBuilder) ->
-                description == null || description.isEmpty() ? null : criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), "%" + description.toLowerCase() + "%");
+    public static Specification<USearchQuery> filterByDescription(String description) {
+        return (root, query, criteriaBuilder) -> {
+            if (description == null || description.trim().isEmpty()) {
+                return null; // No filter applied
+            }
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), "%" + description.trim().toLowerCase() + "%");
+        };
     }
-    public static Specification<USearchQuery> filterByTitle(String title){
-        return (root, query, criteriaBuilder) ->
-                title == null || title.isEmpty() ? null : criteriaBuilder.like(criteriaBuilder.lower(root.get("titre")), "%" + title.toLowerCase() + "%");
+
+    public static Specification<USearchQuery> filterByTitle(String title) {
+        return (root, query, criteriaBuilder) -> {
+            if (title == null || title.trim().isEmpty()) {
+                return null; // No filter applied
+            }
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("titre")), "%" +  title.trim().toLowerCase() + "%");
+        };
     }
+
 
     public static Specification<USearchQuery> filterByGeolocalisation(Double latitude, Double longitude) {
         return (root, query, cb) -> {
