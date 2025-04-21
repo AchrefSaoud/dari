@@ -3,12 +3,10 @@ package utm.tn.dari.modules.chatBot.services.servicesImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.web.client.RestTemplate;
 import utm.tn.dari.modules.chatBot.dtos.GeminiRequest;
 import utm.tn.dari.modules.chatBot.dtos.GeminiResponse;
 import utm.tn.dari.modules.chatBot.services.*;
@@ -23,23 +21,26 @@ public class GeminiServiceImpl implements GeminiService {
 
     private static final Logger logger = LoggerFactory.getLogger(GeminiServiceImpl.class);
     
-    private final WebClient webClient;
+    private final RestTemplate restTemplate;
     private final String apiKey;
     private final StorageService storageService;
     private final DocumentProcessingService documentProcessingService;
     private final VectorEmbeddingService embeddingService;
     private final VectorStoreService vectorStoreService;
     private final int topKChunks;
+    private final String geminiBaseUrl;
 
-    public GeminiServiceImpl(WebClient geminiWebClient,
+    public GeminiServiceImpl(RestTemplate restTemplate,
                            @Value("${gemini.api.key}") String apiKey,
+                           @Value("${gemini.api.url}") String geminiBaseUrl,
                            StorageService storageService,
                            DocumentProcessingService documentProcessingService,
                            VectorEmbeddingService embeddingService,
                            VectorStoreService vectorStoreService,
                            @Value("${top.k.chunks}") int topKChunks) {
-        this.webClient = geminiWebClient;
+        this.restTemplate = restTemplate;
         this.apiKey = apiKey;
+        this.geminiBaseUrl = geminiBaseUrl;
         this.storageService = storageService;
         this.documentProcessingService = documentProcessingService;
         this.embeddingService = embeddingService;
@@ -48,7 +49,7 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     @Override
-    public Mono<GeminiResponse> chatWithGemini(GeminiRequest chatRequest) {
+    public GeminiResponse chatWithGemini(GeminiRequest chatRequest) {
         try {
             // Extract user question
             String userQuestion = chatRequest.getContents().get(0).getParts().get(1).getText();
@@ -75,57 +76,98 @@ public class GeminiServiceImpl implements GeminiService {
             
             logger.debug("Sending request to Gemini with context: {}", context);
             
-            return webClient.post()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/v1beta/models/gemini-1.5-flash:generateContent")
-                            .queryParam("key", apiKey)
-                            .build())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(chatRequest)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, response -> 
-                        response.bodyToMono(String.class)
-                               .flatMap(error -> {
-                                   logger.error("Gemini API error: {}", error);
-                                   return Mono.error(new RuntimeException("Gemini API error: " + error));
-                               }))
-                    .bodyToMono(GeminiResponse.class);
+            // Prepare headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            // Build the request
+            HttpEntity<GeminiRequest> requestEntity = new HttpEntity<>(chatRequest, headers);
+            
+            // Build the URL
+            String url = geminiBaseUrl + "/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+            
+            // Make the request
+            ResponseEntity<GeminiResponse> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                requestEntity,
+                GeminiResponse.class
+            );
+            
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                logger.error("Gemini API error: {}", response.getStatusCode());
+                throw new RuntimeException("Gemini API error: " + response.getStatusCode());
+            }
+            
+            return response.getBody();
         } catch (Exception e) {
             logger.error("Error in chatWithGemini", e);
-            return Mono.error(e);
+            throw new RuntimeException("Error communicating with Gemini API", e);
         }
     }
 
     private String buildSystemMessage(String context) {
         return """
-            You are Dari, a smart, reliable assistant designed to help users by answering their questions clearly and accurately.
-            You must always base your answers strictly on the provided context. 
-            If the context doesn’t contain the necessary information, be honest and say: “Sorry, I don’t have enough information to answer that.”
-            Avoid guessing or generating information that is not present in the context.
+            You are Dari, an intelligent, friendly, and helpful AI assistant designed to provide excellent support while maintaining a warm, professional tone.
             
-            Here is the relevant context to help answer the user's question:
+            Personality Traits:
+            - Friendly and approachable
+            - Professional yet conversational
+            - Empathetic and understanding
+            - Helpful and resourceful
+            - Positive and encouraging
             
+            Communication Guidelines:
+            1. For greetings and casual conversation:
+               - Respond naturally to greetings ("Hello!", "Hi there!")
+               - Answer common small talk appropriately ("I'm doing well, thanks for asking! How about you?")
+               - Keep casual responses brief but friendly
+            
+            2. For information requests:
+               - First try to answer using the provided context below
+               - If context exists but is incomplete, say "Based on what I know..." and answer partially
+               - If no relevant context exists, you may use your general knowledge but indicate it's not from provided sources
+               - If completely unsure, say "I'm not entirely sure about that, but I can try to help you find the answer."
+            
+            3. Always maintain:
+               - Clear, concise language
+               - Proper grammar and punctuation
+               - A helpful, positive attitude
+            
+            Relevant Context (use for factual answers):
             """ + context;
     }
     
-
     private String buildAugmentedPrompt(String question, String context) {
         return """
-            Based on the following context, provide a clear and concise answer to the question.
-            Make sure your response is helpful, factual, and grounded in the information given.
+            User Question: %s
             
-            Question: %s
-            
-            Context: 
+            Available Context:
             %s
             
-            Answer:
+            Instructions:
+            1. Analyze if the question is:
+               a) A greeting/small talk - respond appropriately
+               b) A factual question - answer using context if available
+               c) A complex question - break it down and answer parts you can
+            
+            2. If context exists but doesn't fully answer:
+               - Acknowledge what you can answer
+               - Note any limitations
+               - Offer to help find more information if needed
+            
+            3. Response should be:
+               - Natural and conversational
+               - Helpful and accurate
+               - Appropriately detailed
+               - Friendly but professional
+            
+            Please provide your best response:
             """.formatted(question, context);
     }
     
-
     @Override
-    public Mono<String> uploadFile(MultipartFile file) throws IOException {
+    public String uploadFile(MultipartFile file) throws IOException {
         try {
             String documentId = UUID.randomUUID().toString();
             String filePath = storageService.store(file);
@@ -154,7 +196,7 @@ public class GeminiServiceImpl implements GeminiService {
                 vectorStoreService.storeEmbedding(documentId, chunkId, embeddings.get(i), chunks.get(i));
             }
     
-            return Mono.just("Document processed successfully. ID: " + documentId);
+            return "Document processed successfully. ID: " + documentId;
         } catch (Exception e) {
             logger.error("Error processing file {}", file.getOriginalFilename(), e);
             throw e;
