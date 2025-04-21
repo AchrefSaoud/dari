@@ -99,7 +99,7 @@ public class AnnonceController {
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @Operation(summary = "Récupérer une annonce par son ID",
-            description = "Cette méthode permet de récupérer une annonce en fonction de son ID."
+            description = "Cette méthode permet de récupérer des annonces."
             ,responses = {
             @ApiResponse(responseCode = "200", description = "Annonces retournées avec succès"),
             @ApiResponse(responseCode = "400", description = "Requête invalide "),
@@ -211,7 +211,7 @@ public class AnnonceController {
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             }
     )
-    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateAnnonce(
             @PathVariable Long id,
             @RequestPart("data") String annonceDTOJson,

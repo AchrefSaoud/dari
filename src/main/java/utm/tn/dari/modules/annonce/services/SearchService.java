@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service;
 import utm.tn.dari.entities.USearchQuery;
 import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
+import utm.tn.dari.modules.annonce.Utils.Haversine;
 import utm.tn.dari.modules.annonce.repositories.UQuerySearchSpecification;
 import utm.tn.dari.modules.annonce.repositories.USearchQueryRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,27 +43,54 @@ public class SearchService {
 
 
 
+    public List<User> getUsersFromUSearchQueryFiltered(AnnonceDTO annonce) {
+        try {
+            Specification<USearchQuery> uSearchQuerySpecification = Specification.where(null);
 
-    public List<User> getUsersFromUSearchQueryFiltered(AnnonceDTO annonce){
+            if (annonce.getPrix() >= 0) {
+                uSearchQuerySpecification = uSearchQuerySpecification.and(
+                        UQuerySearchSpecification.filterByPriceRange(annonce.getPrix()));
+            }
 
-        Specification<USearchQuery> uSearchQuerySpecification = Specification.where(null);
+            if (annonce.getTitre() != null) {
+                uSearchQuerySpecification = uSearchQuerySpecification.and(
+                        UQuerySearchSpecification.filterByTitle(annonce.getTitre()));
+            }
 
-        if (annonce.getPrix() >= 0) {
-            uSearchQuerySpecification = uSearchQuerySpecification.and(UQuerySearchSpecification.filterByPriceRange(annonce.getPrix()));
+            if (annonce.getDescription() != null) {
+                uSearchQuerySpecification = uSearchQuerySpecification.and(
+                        UQuerySearchSpecification.filterByDescription(annonce.getDescription()));
+            }
+
+            List<USearchQuery> searchQueries = this.uSearchQueryRepository.findAll(uSearchQuerySpecification);
+
+            return searchQueries.stream()
+                    .filter(uSearchQuery -> {
+                        if (
+                                annonce.getLatitude() != null &&
+                                        annonce.getLongitude() != null &&
+                                        uSearchQuery.getLatitude() != null &&
+                                        uSearchQuery.getLongitude() != null &&
+                                        uSearchQuery.getRadius() != null
+                        ) {
+                            double distance = Haversine.distance(
+                                    annonce.getLatitude(), annonce.getLongitude(),
+                                    uSearchQuery.getLatitude(), uSearchQuery.getLongitude()
+                            );
+                            System.out.println("Distance " + distance);
+                            System.out.println("Radius " + uSearchQuery.getRadius());
+                            return distance <= uSearchQuery.getRadius(); // ✅ correct logic
+                        }
+                        return true; // skip filter if any value is missing
+                    })
+                    .map(USearchQuery::getUser)
+                    .distinct()
+                    .toList();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
         }
-        if (annonce.getLongitude() != null && annonce.getLatitude() != null) {
-
-            uSearchQuerySpecification = uSearchQuerySpecification.and(UQuerySearchSpecification.filterByGeolocalisation(annonce.getLatitude(), annonce.getLongitude()));
-        }
-
-
-        List<USearchQuery> searchQueries = this.uSearchQueryRepository.findAll(uSearchQuerySpecification);
-        return searchQueries.stream()
-                .map(USearchQuery::getUser)
-                .distinct()
-                .toList();
     }
-
-
 
 }
