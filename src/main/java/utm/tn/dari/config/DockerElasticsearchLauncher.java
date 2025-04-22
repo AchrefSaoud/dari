@@ -15,6 +15,7 @@ public class DockerElasticsearchLauncher {
 
     public static void lauchDockerContainer() throws IOException, InterruptedException {
         // Check if the container already exists
+
         ProcessBuilder checkContainer = new ProcessBuilder(
                 "docker", "ps", "-a", "--filter", "name=elasticsearch", "--format", "{{.Names}}"
         );
