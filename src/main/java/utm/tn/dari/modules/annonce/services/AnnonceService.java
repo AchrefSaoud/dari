@@ -21,6 +21,7 @@ import utm.tn.dari.entities.enums.StatusAnnonce;
 import utm.tn.dari.entities.enums.TypeAnnonce;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.Dtoes.USearchQueryDTO;
+import utm.tn.dari.modules.annonce.Utils.Haversine;
 import utm.tn.dari.modules.annonce.elastic.documents.AnnonceDoc;
 import utm.tn.dari.modules.annonce.elastic.repositories.AnnonceElasticRepo;
 import utm.tn.dari.modules.annonce.events.AnnoncePostedEvent;
@@ -78,9 +79,9 @@ public class AnnonceService {
 
             Abonnement abonnement = user.getAbonnement();
 
-        /*    if(abonnement == null) {
-                throw new AnnonceServiceException("User has no subscription");
-            }*/
+            if(abonnement == null) {
+                throw new ObjectNotFoundException("User has no subscription");
+            }
 
 
             // TODO : create the annonce
@@ -489,14 +490,11 @@ public class AnnonceService {
 
             Set<Long> annonceDocIds = annonceDocs.stream().map(AnnonceDoc::getId).collect(Collectors.toSet());
 
-            this.annonceElasticRepo.findAllByTitleMatches(query).forEach(annonceDocs::add);
+            annonceDocs.addAll(this.annonceElasticRepo.findAllByTitleMatches(query));
 
 
 
-            Set<Long> annonceDoctIds = annonceDocs.stream().map(AnnonceDoc::getId).collect(Collectors.toSet());
-
-
-            System.out.println("SET "+ annonceDocIds.size());
+            Set<Long> annoncetitleIds = annonceDocs.stream().map(AnnonceDoc::getId).collect(Collectors.toSet());
 
 
             Pageable pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
@@ -504,7 +502,8 @@ public class AnnonceService {
 
             List<AnnonceDTO> annonceDTOs = new ArrayList<>();
             for (Annonce annonce : annonces) {
-                if(annonceDocIds.contains(annonce.getId()) || annonceDoctIds.contains(annonce.getId())){
+                if((annonceDocIds.contains(annonce.getId()) || annoncetitleIds.contains(annonce.getId()))
+                 && ( radius >= Haversine.distance(annonce.getLatitude(),annonce.getLongitude(),latitude,longitude))){
                     AnnonceDTO annonceDTO = AnnonceDTO.builder()
                             .id(annonce.getId())
                             .titre(annonce.getTitre())
@@ -521,7 +520,6 @@ public class AnnonceService {
                 }
 
             }
-            System.out.println("DB " + annonceDTOs.size());
 
 
 
@@ -529,6 +527,8 @@ public class AnnonceService {
                     this,
                     USearchQueryDTO.builder()
 
+                            .query(query
+                            )
                             .minPrix(minPrice)
                             .maxPrix(maxPrice)
                             .type(type)

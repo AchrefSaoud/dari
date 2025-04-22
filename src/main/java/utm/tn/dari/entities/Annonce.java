@@ -57,7 +57,7 @@ public class Annonce {
     @ToString.Exclude
     private List<DemandeLocation> demandeLocations;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JsonBackReference
     @ToString.Exclude
     private User user;

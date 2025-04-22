@@ -23,6 +23,9 @@ public class USearchQueryService {
     @Autowired
     AnnonceService  annonceService;
 
+    @Autowired
+    USearchQElasticSearchService uSearchQElasticSearchService;
+
     @Async
     public void saveUSearchQuery(USearchQueryDTO uSearchQueryDTO) throws Exception {
 
@@ -39,8 +42,7 @@ public class USearchQueryService {
 
         USearchQuery uSearchQuery = new USearchQuery();
         uSearchQuery.setUser(user);
-        uSearchQuery.setTitre(uSearchQueryDTO.getTitre());
-        uSearchQuery.setDescription(uSearchQueryDTO.getDescription());
+        uSearchQuery.setQuery(uSearchQueryDTO.getQuery());
         uSearchQuery.setMinPrix(uSearchQueryDTO.getMinPrix());
         uSearchQuery.setMaxPrix(uSearchQueryDTO.getMaxPrix());
         uSearchQuery.setLatitude(uSearchQueryDTO.getLatitude());
@@ -49,7 +51,11 @@ public class USearchQueryService {
         uSearchQuery.setType(uSearchQueryDTO.getType());
         uSearchQuery.setStatusAnnonce(uSearchQueryDTO.getStatusAnnonce());
 
-        this.uSearchQueryRepository.save(uSearchQuery);
+
+
+       uSearchQuery =   this.uSearchQueryRepository.save(uSearchQuery);
+
+       uSearchQElasticSearchService.createUSearchQDoc(uSearchQuery.getId(), uSearchQuery.getQuery());
 
 
     }

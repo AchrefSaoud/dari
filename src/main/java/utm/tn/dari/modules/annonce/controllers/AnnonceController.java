@@ -174,6 +174,8 @@ public class AnnonceController {
             }
     )
     @GetMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
+
     public ResponseEntity<?> getAnnonceById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(annonceService.getAnnonceById(id));
@@ -210,6 +212,8 @@ public class AnnonceController {
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             }
     )
+    @SecurityRequirement(name = "bearerAuth")
+
     @PutMapping(value = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateAnnonce(
             @PathVariable Long id,
@@ -246,6 +250,8 @@ public class AnnonceController {
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
+    @SecurityRequirement(name = "bearerAuth")
+
     @Operation(
             summary = "Supprimer une annonce",
             description = "Cette méthode permet de supprimer une annonce en fonction de son ID.",

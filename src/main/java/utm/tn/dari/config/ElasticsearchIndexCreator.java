@@ -4,8 +4,10 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
+import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.stereotype.Component;
 import utm.tn.dari.modules.annonce.elastic.documents.AnnonceDoc;
+import utm.tn.dari.modules.annonce.elastic.documents.USearchQDoc;
 
 import java.util.List;
 import java.util.Map;
@@ -18,7 +20,12 @@ public class ElasticsearchIndexCreator {
 
     @PostConstruct
     public void createIndexWithCustomSettings() {
-        IndexOperations indexOps = elasticsearchOperations.indexOps(AnnonceDoc.class);
+        createIndexIfNotExists(AnnonceDoc.class);
+        createIndexIfNotExists(USearchQDoc.class);
+    }
+
+    private void createIndexIfNotExists(Class<?> documentClass) {
+        IndexOperations indexOps = elasticsearchOperations.indexOps(documentClass);
 
         if (!indexOps.exists()) {
             Map<String, Object> ngramTokenizer = Map.of(
@@ -44,6 +51,30 @@ public class ElasticsearchIndexCreator {
                     "max_ngram_diff", 8
             );
 
+            indexOps.create(settings);
+
+            // Mapping with ngram analyzer for specific fields
+            Map<String, Object> mapping = Map.of(
+                    "properties", Map.of(
+                            "query", Map.of(
+                                    "type", "text",
+                                    "analyzer", "ngram_analyzer",
+                                    "search_analyzer", "standard"
+                            ),
+                            "title", Map.of(
+                                    "type", "text",
+                                    "analyzer", "ngram_analyzer",
+                                    "search_analyzer", "standard"
+                            ),
+                            "description", Map.of(
+                                    "type", "text",
+                                    "analyzer", "ngram_analyzer",
+                                    "search_analyzer", "standard"
+                            )
+                    )
+            );
+
+            indexOps.putMapping(Document.from(mapping));
         }
     }
 }

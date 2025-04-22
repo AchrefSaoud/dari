@@ -8,6 +8,7 @@ import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.services.MailingService;
 import utm.tn.dari.modules.annonce.services.SearchService;
+import utm.tn.dari.security.services.UserService;
 
 import java.util.List;
 
@@ -20,21 +21,31 @@ public class PostedAnnouncementEventHandler {
     @Autowired
     SearchService searchService;
 
+    @Autowired
+    UserService userService;
+
     @EventListener
     public void handleAnnoncePostedEvent(AnnoncePostedEvent event) {
 
-        AnnonceDTO annonceDTO = event.getAnnonce();
-        runUSearchQueryScanning(annonceDTO);
+        try {
+            AnnonceDTO annonceDTO = event.getAnnonce();
+            runUSearchQueryScanning(annonceDTO);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
 
 
     }
 
     @Async
+
     public void runUSearchQueryScanning(AnnonceDTO annonce) {
 
 
-        List<User> users = this.searchService.getUsersFromUSearchQueryFiltered(annonce);
-        System.out.println("Users to notify: " + users);
+        List<Long> usersIds = this.searchService.getUsersFromUSearchQueryFiltered(annonce);
+        System.out.println("Users to notify: " + usersIds);
+        List<User> users = userService.getAllByIds(usersIds);
         sendNotificationEmailToUsers(users, annonce.getId());
     }
     public void sendNotificationEmailToUsers(List<User> users, Long announcementId) {

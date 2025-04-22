@@ -13,8 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 public class USearchQueryDTO {
-    private String description;
-    private String titre;
+    private String query;
     private Float minPrix;
     private Float maxPrix;
     private TypeAnnonce type;
