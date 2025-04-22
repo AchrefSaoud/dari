@@ -12,6 +12,7 @@ import utm.tn.dari.entities.User;
 import utm.tn.dari.entities.Visite;
 
 import utm.tn.dari.modules.annonce.repositories.AnnonceRepository;
+import utm.tn.dari.modules.annonce.services.MailingService;
 import utm.tn.dari.modules.authentication.repositories.UserRepository;
 
 import utm.tn.dari.modules.visite.dtos.VisiteDTO;
@@ -28,12 +29,13 @@ public class VisiteService {
     private final UserService userService;
     private final VisiteRepo visiteRepository;
     private final AnnonceRepository annonceRepository;
-
+    private final MailingServ mailingService;
     public VisiteService(UserService userService, VisiteRepo visiteRepository,
-                         AnnonceRepository annonceRepository) {
+                         AnnonceRepository annonceRepository, MailingServ mailingService) {
         this.userService = userService;
         this.visiteRepository = visiteRepository;
         this.annonceRepository = annonceRepository;
+        this.mailingService = mailingService;
     }
 
     public List<VisiteDTO> getAvailableSlots(Long annonceId) {
@@ -70,7 +72,7 @@ public class VisiteService {
 
         User client = userService.findUserById(userId);
         visite.setClient(client);
-
+        mailingService.sendNotificationEmailForNewRDVToUser(visite);
         return visiteRepository.save(visite);
     }
 
