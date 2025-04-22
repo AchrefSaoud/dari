@@ -105,7 +105,7 @@ public class AnnonceService {
             annonce.setDescription(annonceDTO.getDescription());
             annonce.setPrix(annonceDTO.getPrix());
             annonce.setType(annonceDTO.getType());
-            annonce.setStatus(annonceDTO.getStatus());
+            annonce.setStatus(StatusAnnonce.EN_ATTENTE);
             annonce.setAttachmentPaths(attachmentPaths);
             annonce.setUser(user);
             annonce.setLatitude(annonceDTO.getLatitude());
@@ -144,7 +144,6 @@ public class AnnonceService {
             this.applicationEventPublisher.publishEvent(annoncePostedEvent);
 
            AnnonceDoc annonceDoc =  this.annonceElasticRepo.save(new AnnonceDoc(annonce.getId(),annonce.getTitre(),annonce.getDescription()));
-            System.out.println("ANNONCE " + annonceDoc.getId());
            return publishedAnnonceDTO;
         }catch (Exception e){
             e.printStackTrace();
