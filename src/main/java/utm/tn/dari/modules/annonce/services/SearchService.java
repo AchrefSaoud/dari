@@ -52,15 +52,6 @@ public class SearchService {
                         UQuerySearchSpecification.filterByPriceRange(annonce.getPrix()));
             }
 
-            if (annonce.getTitre() != null) {
-                uSearchQuerySpecification = uSearchQuerySpecification.and(
-                        UQuerySearchSpecification.filterByTitle(annonce.getTitre()));
-            }
-
-            if (annonce.getDescription() != null) {
-                uSearchQuerySpecification = uSearchQuerySpecification.and(
-                        UQuerySearchSpecification.filterByDescription(annonce.getDescription()));
-            }
 
             List<USearchQuery> searchQueries = this.uSearchQueryRepository.findAll(uSearchQuerySpecification);
 

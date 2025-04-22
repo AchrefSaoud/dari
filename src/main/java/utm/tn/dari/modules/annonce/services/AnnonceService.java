@@ -21,6 +21,8 @@ import utm.tn.dari.entities.enums.StatusAnnonce;
 import utm.tn.dari.entities.enums.TypeAnnonce;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.Dtoes.USearchQueryDTO;
+import utm.tn.dari.modules.annonce.elastic.documents.AnnonceDoc;
+import utm.tn.dari.modules.annonce.elastic.repositories.AnnonceElasticRepo;
 import utm.tn.dari.modules.annonce.events.AnnoncePostedEvent;
 import utm.tn.dari.modules.annonce.events.NewQueryEvent;
 import utm.tn.dari.modules.annonce.events.PriceChangedEvent;
@@ -38,6 +40,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AnnonceService {
@@ -51,6 +55,9 @@ public class AnnonceService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+            private AnnonceElasticRepo annonceElasticRepo;
 
     Logger logger = LoggerFactory.getLogger(AnnonceService.class);
 
@@ -135,6 +142,8 @@ public class AnnonceService {
             );
             this.applicationEventPublisher.publishEvent(annoncePostedEvent);
 
+           AnnonceDoc annonceDoc =  this.annonceElasticRepo.save(new AnnonceDoc(annonce.getId(),annonce.getTitre(),annonce.getDescription()));
+            System.out.println("ANNONCE " + annonceDoc.getId());
            return publishedAnnonceDTO;
         }catch (Exception e){
             e.printStackTrace();
@@ -399,8 +408,7 @@ public class AnnonceService {
 
   public Page<AnnonceDTO> getMyAnnonces (  TypeAnnonce type,
                                            StatusAnnonce status,
-                                           String description,
-                                           String titre,
+                                           String query,
                                             Float minPrice,
                                             Float maxPrice,
                                            Double longitude,
@@ -412,8 +420,7 @@ public class AnnonceService {
         try {
 
             return getQueriedAnnonces(
-                    titre,
-                    description,
+                    query,
                     type,
                     status,
                     getUsernameFromToken(),
@@ -431,8 +438,7 @@ public class AnnonceService {
   }
   public Page<AnnonceDTO> getQueriedAnnonces(
 
-            String titre,
-            String description,
+            String query,
             TypeAnnonce type,
             StatusAnnonce status,
             String searchedUsername,
@@ -462,9 +468,6 @@ public class AnnonceService {
                 spec = spec.and(AnnonceSearchSpecification.filterByStatus(status));
             }
 
-            if (latitude != null && longitude != null && radius != null) {
-                spec = spec.and(AnnonceSearchSpecification.filterByGeolocalisation(latitude, longitude, radius));
-            }
 
             if(minPrice == null){
                 minPrice = 0f;
@@ -475,44 +478,57 @@ public class AnnonceService {
             }
                 spec = spec.and(AnnonceSearchSpecification.filterByPriceRange(minPrice, maxPrice));
 
-
-
-            if (titre != null && !titre.isEmpty()) {
-                spec = spec.and(AnnonceSearchSpecification.filterByTitle(titre));
-            }
-            if (description != null && !description.isEmpty()) {
-                spec = spec.and(AnnonceSearchSpecification.filterByDescription(description));
+            if(query == null){
+                query = "";
             }
 
+            List<AnnonceDoc> annonceDocs = new ArrayList<>();
+            this.annonceElasticRepo.findAllByDescriptionMatches(query).forEach(annonceDocs::add);
 
 
+
+            Set<Long> annonceDocIds = annonceDocs.stream().map(AnnonceDoc::getId).collect(Collectors.toSet());
+
+            this.annonceElasticRepo.findAllByTitleMatches(query).forEach(annonceDocs::add);
+
+
+
+            Set<Long> annonceDoctIds = annonceDocs.stream().map(AnnonceDoc::getId).collect(Collectors.toSet());
+
+
+            System.out.println("SET "+ annonceDocIds.size());
 
 
             Pageable pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
             Page<Annonce> annonces = annonceRepository.findAll(spec, pageable);
+
             List<AnnonceDTO> annonceDTOs = new ArrayList<>();
             for (Annonce annonce : annonces) {
-                AnnonceDTO annonceDTO = AnnonceDTO.builder()
-                        .id(annonce.getId())
-                        .titre(annonce.getTitre())
-                        .description(annonce.getDescription())
-                        .prix(annonce.getPrix())
-                        .type(annonce.getType())
-                        .status(annonce.getStatus())
-                        .userId(annonce.getUser().getId())
-                        .latitude(annonce.getLatitude())
-                        .longitude(annonce.getLongitude())
-                        .attachmentPaths(annonce.getAttachmentPaths())
-                        .build();
-                annonceDTOs.add(annonceDTO);
+                if(annonceDocIds.contains(annonce.getId()) || annonceDoctIds.contains(annonce.getId())){
+                    AnnonceDTO annonceDTO = AnnonceDTO.builder()
+                            .id(annonce.getId())
+                            .titre(annonce.getTitre())
+                            .description(annonce.getDescription())
+                            .prix(annonce.getPrix())
+                            .type(annonce.getType())
+                            .status(annonce.getStatus())
+                            .userId(annonce.getUser().getId())
+                            .latitude(annonce.getLatitude())
+                            .longitude(annonce.getLongitude())
+                            .attachmentPaths(annonce.getAttachmentPaths())
+                            .build();
+                    annonceDTOs.add(annonceDTO);
+                }
+
             }
+            System.out.println("DB " + annonceDTOs.size());
+
 
 
             NewQueryEvent newQueryEvent =  new NewQueryEvent(
                     this,
                     USearchQueryDTO.builder()
-                            .description(description)
-                            .titre(titre)
+
                             .minPrix(minPrice)
                             .maxPrix(maxPrice)
                             .type(type)

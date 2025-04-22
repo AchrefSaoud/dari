@@ -110,8 +110,7 @@ public class AnnonceController {
     @SecurityRequirement(name = "bearerAuth")
 
     public ResponseEntity<?> getQueriedAnnonces(
-            @RequestParam(value = "titre", required = false) String titre,
-            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "query",required = false) String query,
             @RequestParam(value = "minPrix", required = false) Float minPrix,
             @RequestParam(value = "maxPrix", required = false) Float maxPrix,
             @RequestParam(value = "type", required = false) TypeAnnonce type,
@@ -125,7 +124,7 @@ public class AnnonceController {
 
         try {
             Page<AnnonceDTO> annoncesPage = annonceService.getQueriedAnnonces(
-                    titre, description, type, status, username,minPrix,maxPrix, latitude, longitude, radius, page, size);
+                    query, type, status, username,minPrix,maxPrix, latitude, longitude, radius, page, size);
 
             AnnoncesPageDTO annoncesPageDTO = AnnoncesPageDTO.builder()
                     .annonces(annoncesPage.getContent())
