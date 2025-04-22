@@ -89,4 +89,51 @@ public class VisiteService {
                 .map(VisiteDTO::new)
                 .collect(Collectors.toList());
     }
+
+    public void deleteVisite(Long visiteId, Long userId) {
+        Visite visite = visiteRepository.findById(visiteId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Visite not found"));
+
+        // Check if user is owner or admin
+        if (!visite.getOwner().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You can only delete visites you've created");
+        }
+
+        // Prevent deletion if visite is already booked
+        if (visite.getClient() != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot delete visite that has been booked. Cancel it first.");
+        }
+
+        visiteRepository.delete(visite);
+
+        // Optional: Send notification
+    }
+
+    public Visite cancelVisite(Long visiteId, Long userId) {
+        Visite visite = visiteRepository.findById(visiteId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Visite not found"));
+
+        // Verify the user is the client who booked this visite
+        if (visite.getClient() == null || !visite.getClient().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You can only cancel visites you've booked");
+        }
+
+        // Verify it's not too late to cancel (e.g., at least 24 hours before)
+        if (LocalDateTime.now().isAfter(visite.getStartTime().minusHours(24))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cancellation must be done at least 24 hours before the visite");
+        }
+
+        // Keep track of cancellation
+        visite.setClient(null);
+
+        Visite updatedVisite = visiteRepository.save(visite);
+
+
+
+        return updatedVisite;
+    }
 }

@@ -1,5 +1,6 @@
 package utm.tn.dari.modules.visite.controllers;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -63,5 +64,20 @@ public class VisiteController {
     public List<VisiteDTO> getMyBookedSlots(
             @PathVariable long userId) {
         return visiteService.getMyBookedSlots(userId);
+    }
+    @DeleteMapping("/{visiteId}/{userId}")
+    public ResponseEntity<?> deleteVisite(
+            @PathVariable Long visiteId,
+            @PathVariable Long userId
+            ) {
+        visiteService.deleteVisite(visiteId, userId);
+        return ResponseEntity.ok().build();
+    }
+    @PostMapping("/cancel-as-client/{visiteId}/{userId}")
+    public ResponseEntity<Visite> cancelVisite(
+            @PathVariable Long visiteId,
+            @PathVariable Long userId) {
+        Visite cancelledVisite = visiteService.cancelVisite(visiteId, userId);
+        return ResponseEntity.ok(cancelledVisite);
     }
 }
