@@ -1,14 +1,10 @@
 package utm.tn.dari.config;
 
-import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Random;
+
 
 
 public class DockerElasticsearchLauncher {

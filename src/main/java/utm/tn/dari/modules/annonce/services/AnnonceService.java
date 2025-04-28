@@ -17,13 +17,14 @@ import org.springframework.web.multipart.MultipartFile;
 import utm.tn.dari.entities.Abonnement;
 import utm.tn.dari.entities.Annonce;
 import utm.tn.dari.entities.User;
+import utm.tn.dari.entities.enums.Rooms;
 import utm.tn.dari.entities.enums.StatusAnnonce;
 import utm.tn.dari.entities.enums.TypeAnnonce;
+import utm.tn.dari.entities.enums.TypeBien;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.Dtoes.USearchQueryDTO;
 import utm.tn.dari.modules.annonce.Utils.Haversine;
-import utm.tn.dari.modules.annonce.elastic.documents.AnnonceDoc;
-import utm.tn.dari.modules.annonce.elastic.repositories.AnnonceElasticRepo;
+
 import utm.tn.dari.modules.annonce.events.AnnoncePostedEvent;
 import utm.tn.dari.modules.annonce.events.NewQueryEvent;
 import utm.tn.dari.modules.annonce.events.PriceChangedEvent;
@@ -38,10 +39,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,12 +55,13 @@ public class AnnonceService {
     @Autowired
     private UserService userService;
 
-    @Autowired
-            private AnnonceElasticRepo annonceElasticRepo;
+
+
+    String dirPath = "dari/uploads";
 
     Logger logger = LoggerFactory.getLogger(AnnonceService.class);
 
-    public AnnonceDTO postAnnonce(AnnonceDTO annonceDTO, List<MultipartFile> attachments) throws Exception {
+    public AnnonceDTO postAnnonce(AnnonceDTO annonceDTO,List<MultipartFile> attachments) throws Exception {
         List<String> attachmentPaths = new ArrayList<>();
 
         try {
@@ -89,7 +88,7 @@ public class AnnonceService {
             for (MultipartFile attachment : attachments) {
                 String randomString = java.util.UUID.randomUUID().toString();
                 try {
-                    String filePath = saveFile(attachment, randomString);
+                    String filePath = saveFile(dirPath,attachment, randomString);
                     attachmentPaths.add(filePath);
 
                 }catch (Exception e){
@@ -105,6 +104,7 @@ public class AnnonceService {
             annonce.setDescription(annonceDTO.getDescription());
             annonce.setPrix(annonceDTO.getPrix());
             annonce.setType(annonceDTO.getType());
+            annonce.setRooms(annonceDTO.getRooms());
             annonce.setStatus(StatusAnnonce.EN_ATTENTE);
             annonce.setAttachmentPaths(attachmentPaths);
             annonce.setUser(user);
@@ -143,7 +143,6 @@ public class AnnonceService {
             );
             this.applicationEventPublisher.publishEvent(annoncePostedEvent);
 
-           AnnonceDoc annonceDoc =  this.annonceElasticRepo.save(new AnnonceDoc(annonce.getId(),annonce.getTitre(),annonce.getDescription()));
            return publishedAnnonceDTO;
         }catch (Exception e){
             e.printStackTrace();
@@ -161,7 +160,7 @@ public class AnnonceService {
         }
     }
 
-    private String saveFile(MultipartFile multipartFile, String prefix) throws Exception {
+    private String saveFile(String dirPath, MultipartFile multipartFile, String prefix) throws Exception {
         try {
             if (multipartFile.isEmpty()) {
                 throw new FileSavingException("File is empty");
@@ -181,13 +180,15 @@ public class AnnonceService {
             if (multipartFile.getContentType() == null) {
                 throw new FileSavingException("File type is null");
             }
-            if(!multipartFile.getContentType().startsWith("image/") && !multipartFile.getContentType().startsWith("video/") && !multipartFile.getContentType().startsWith("application/pdf")) {
+            if (!multipartFile.getContentType().startsWith("image/") &&
+                    !multipartFile.getContentType().startsWith("video/") &&
+                    !multipartFile.getContentType().startsWith("application/pdf")) {
                 throw new FileSavingException("File type is not supported, only images, videos and pdfs are allowed");
             }
 
             originalFilename = Paths.get(originalFilename).getFileName().toString(); // sanitize
 
-            Path uploadPath = Paths.get("dari/uploads");
+            Path uploadPath = Paths.get(dirPath);
             Files.createDirectories(uploadPath);
 
             Path filePath = uploadPath.resolve(prefix + "_" + originalFilename);
@@ -198,10 +199,17 @@ public class AnnonceService {
 
             Files.copy(multipartFile.getInputStream(), filePath);
 
-            return filePath.toAbsolutePath().toString();
+            // 🛠 Fix here:
+            int uploadPathNameCount = uploadPath.getNameCount();
+            int filePathNameCount = filePath.getNameCount();
+
+            // extract the part after uploadPath
+            Path relativePath = filePath.subpath(uploadPathNameCount, filePathNameCount);
+
+            return relativePath.toString().replace("\\", "/"); // normalize slashes
 
         } catch (Exception e) {
-            if(e instanceof FileSavingException) {
+            if (e instanceof FileSavingException) {
                 throw e;
             }
             throw new Exception("Error while saving the file", e);
@@ -242,7 +250,7 @@ public class AnnonceService {
                 String randomString = java.util.UUID.randomUUID().toString();
                 String filePath = null;
                 try {
-                    filePath = saveFile(attachment, randomString);
+                    filePath = saveFile(dirPath,attachment, randomString);
                 } catch (Exception e) {
                     if (e instanceof FileSavingException) {
                         throw e;
@@ -348,7 +356,7 @@ public class AnnonceService {
             if(annonce.getUser().getUsername().equals(username)) {
                 for (MultipartFile attachment : newAttachments) {
                     String randomString = java.util.UUID.randomUUID().toString();
-                    String filePath = saveFile(attachment, randomString);
+                    String filePath = saveFile(dirPath,attachment, randomString);
                     attachmentPaths.add(filePath);
                 }
                 annonce.getAttachmentPaths().addAll(attachmentPaths);
@@ -411,6 +419,8 @@ public class AnnonceService {
                                            String query,
                                             Float minPrice,
                                             Float maxPrice,
+                                           TypeBien typeBien,
+                                           Rooms rooms,
                                            Double longitude,
                                            Double latitude,
                                            Double radius,
@@ -426,6 +436,8 @@ public class AnnonceService {
                     getUsernameFromToken(),
                     minPrice,
                     maxPrice,
+                    typeBien,
+                    rooms,
                     longitude,
                     latitude,
                     radius,
@@ -444,13 +456,32 @@ public class AnnonceService {
             String searchedUsername,
             Float minPrice,
             Float maxPrice,
-            Double longitude,
+            TypeBien typeBien,
+            Rooms rooms,
             Double latitude,
+
+            Double longitude,
             Double radius,
             int pageNumber,
             int pageSize
     ) throws Exception {
         try {
+
+
+            System.out.println("/////////////");
+            System.out.println(maxPrice);
+            System.out.println(minPrice);
+            System.out.println(query);
+            System.out.println(status);
+            System.out.println(searchedUsername);
+            System.out.println(typeBien);
+            System.out.println(type);
+            System.out.println(latitude);
+            System.out.println(longitude);
+            System.out.println(radius);
+            System.out.println("//////");
+
+
             org.springframework.security.core.userdetails.User userObject = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
             User user = this.userService.findByUsername(userObject.getUsername());
@@ -460,6 +491,7 @@ public class AnnonceService {
             if (searchedUsername != null && !searchedUsername.isEmpty()) {
                 spec = spec.and(AnnonceSearchSpecification.filterByUsername(searchedUsername));
             }
+
 
             if (type != null) {
                 spec = spec.and(AnnonceSearchSpecification.filterByType(type));
@@ -478,45 +510,43 @@ public class AnnonceService {
             }
                 spec = spec.and(AnnonceSearchSpecification.filterByPriceRange(minPrice, maxPrice));
 
-            if(query == null){
-                query = "";
+
+            if(typeBien != null){
+                spec = spec.and(AnnonceSearchSpecification.filterByTypeBien(typeBien));
+            }
+            if(query != null){
+                spec = spec.and(AnnonceSearchSpecification.filterByDescription(query));
+            }
+            if(rooms != null && !rooms.equals(Rooms.Any)){
+                spec = spec.and(AnnonceSearchSpecification.filterByRooms(rooms));
             }
 
-            List<AnnonceDoc> annonceDocs = new ArrayList<>();
-            this.annonceElasticRepo.findAllByDescriptionMatches(query).forEach(annonceDocs::add);
-
-
-
-            Set<Long> annonceDocIds = annonceDocs.stream().map(AnnonceDoc::getId).collect(Collectors.toSet());
-
-            annonceDocs.addAll(this.annonceElasticRepo.findAllByTitleMatches(query));
-
-
-
-            Set<Long> annoncetitleIds = annonceDocs.stream().map(AnnonceDoc::getId).collect(Collectors.toSet());
-
-
             Pageable pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
+
             Page<Annonce> annonces = annonceRepository.findAll(spec, pageable);
 
             List<AnnonceDTO> annonceDTOs = new ArrayList<>();
+
             for (Annonce annonce : annonces) {
-                if((annonceDocIds.contains(annonce.getId()) || annoncetitleIds.contains(annonce.getId()))
-                 && ( radius >= Haversine.distance(annonce.getLatitude(),annonce.getLongitude(),latitude,longitude))){
-                    AnnonceDTO annonceDTO = AnnonceDTO.builder()
-                            .id(annonce.getId())
-                            .titre(annonce.getTitre())
-                            .description(annonce.getDescription())
-                            .prix(annonce.getPrix())
-                            .type(annonce.getType())
-                            .status(annonce.getStatus())
-                            .userId(annonce.getUser().getId())
-                            .latitude(annonce.getLatitude())
-                            .longitude(annonce.getLongitude())
-                            .attachmentPaths(annonce.getAttachmentPaths())
-                            .build();
-                    annonceDTOs.add(annonceDTO);
+
+
+                if( radius != null && latitude != null && longitude != null && radius <= Haversine.distance(annonce.getLatitude(),annonce.getLongitude(),latitude,longitude)){
+                    continue;
                 }
+
+                AnnonceDTO annonceDTO = AnnonceDTO.builder()
+                        .id(annonce.getId())
+                        .titre(annonce.getTitre())
+                        .description(annonce.getDescription())
+                        .prix(annonce.getPrix())
+                        .type(annonce.getType())
+                        .status(annonce.getStatus())
+                        .userId(annonce.getUser().getId())
+                        .latitude(annonce.getLatitude())
+                        .longitude(annonce.getLongitude())
+                        .attachmentPaths(annonce.getAttachmentPaths())
+                        .build();
+                annonceDTOs.add(annonceDTO);
 
             }
 
@@ -542,8 +572,7 @@ public class AnnonceService {
 
             this.applicationEventPublisher.publishEvent(newQueryEvent);
 
-            PageImpl <AnnonceDTO> annonceDTOsPage = new PageImpl<>(annonceDTOs, pageable, annonces.getTotalElements());
-            return annonceDTOsPage;
+            return new PageImpl<>(annonceDTOs, pageable, annonces.getTotalElements());
         } catch (Exception e) {
             e.printStackTrace();
 

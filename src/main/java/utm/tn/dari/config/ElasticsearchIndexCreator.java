@@ -1,4 +1,4 @@
-package utm.tn.dari.config;
+/*package utm.tn.dari.config;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +28,7 @@ public class ElasticsearchIndexCreator {
         IndexOperations indexOps = elasticsearchOperations.indexOps(documentClass);
 
         if (!indexOps.exists()) {
+            // Ngram tokenizer configuration (used for both indexing and searching)
             Map<String, Object> ngramTokenizer = Map.of(
                     "type", "ngram",
                     "min_gram", 2,
@@ -35,7 +36,8 @@ public class ElasticsearchIndexCreator {
                     "token_chars", List.of("letter", "digit")
             );
 
-            Map<String, Object> analyzer = Map.of(
+            // Single analyzer that will be used for both indexing and searching
+            Map<String, Object> ngramAnalyzer = Map.of(
                     "type", "custom",
                     "tokenizer", "ngram_tokenizer",
                     "filter", List.of("lowercase")
@@ -43,7 +45,7 @@ public class ElasticsearchIndexCreator {
 
             Map<String, Object> analysis = Map.of(
                     "tokenizer", Map.of("ngram_tokenizer", ngramTokenizer),
-                    "analyzer", Map.of("ngram_analyzer", analyzer)
+                    "analyzer", Map.of("ngram_analyzer", ngramAnalyzer)
             );
 
             Map<String, Object> settings = Map.of(
@@ -53,23 +55,20 @@ public class ElasticsearchIndexCreator {
 
             indexOps.create(settings);
 
-            // Mapping with ngram analyzer for specific fields
+            // Mapping - using the same analyzer for both indexing and searching
             Map<String, Object> mapping = Map.of(
                     "properties", Map.of(
                             "query", Map.of(
                                     "type", "text",
-                                    "analyzer", "ngram_analyzer",
-                                    "search_analyzer", "standard"
+                                    "analyzer", "ngram_analyzer" // Applied to both index and search
                             ),
                             "title", Map.of(
                                     "type", "text",
-                                    "analyzer", "ngram_analyzer",
-                                    "search_analyzer", "standard"
+                                    "analyzer", "ngram_analyzer" // Applied to both index and search
                             ),
                             "description", Map.of(
                                     "type", "text",
-                                    "analyzer", "ngram_analyzer",
-                                    "search_analyzer", "standard"
+                                    "analyzer", "ngram_analyzer" // Applied to both index and search
                             )
                     )
             );
@@ -77,4 +76,4 @@ public class ElasticsearchIndexCreator {
             indexOps.putMapping(Document.from(mapping));
         }
     }
-}
+}*/

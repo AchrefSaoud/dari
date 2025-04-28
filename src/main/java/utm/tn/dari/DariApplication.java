@@ -13,13 +13,6 @@ public class DariApplication {
 
 	public static void main(String[] args) {
 
-
-		try {
-			DockerElasticsearchLauncher.lauchDockerContainer();
-
-		}catch (Exception e){
-			e.printStackTrace();
-		}
 		 SpringApplication.run(DariApplication.class, args);
 	}
 

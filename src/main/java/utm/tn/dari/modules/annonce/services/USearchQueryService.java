@@ -23,8 +23,7 @@ public class USearchQueryService {
     @Autowired
     AnnonceService  annonceService;
 
-    @Autowired
-    USearchQElasticSearchService uSearchQElasticSearchService;
+
 
     @Async
     public void saveUSearchQuery(USearchQueryDTO uSearchQueryDTO) throws Exception {
@@ -55,7 +54,6 @@ public class USearchQueryService {
 
        uSearchQuery =   this.uSearchQueryRepository.save(uSearchQuery);
 
-       uSearchQElasticSearchService.createUSearchQDoc(uSearchQuery.getId(), uSearchQuery.getQuery());
 
 
     }

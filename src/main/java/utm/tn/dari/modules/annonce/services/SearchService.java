@@ -1,23 +1,16 @@
 package utm.tn.dari.modules.annonce.services;
 
-import jakarta.persistence.criteria.Expression;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.geo.Point;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import utm.tn.dari.entities.USearchQuery;
-import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.Utils.Haversine;
-import utm.tn.dari.modules.annonce.elastic.documents.USearchQDoc;
 import utm.tn.dari.modules.annonce.repositories.UQuerySearchSpecification;
 import utm.tn.dari.modules.annonce.repositories.USearchQueryRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class SearchService {
@@ -26,8 +19,7 @@ public class SearchService {
     private USearchQueryRepository uSearchQueryRepository;
 
 
-    @Autowired
-    private USearchQElasticSearchService uSearchQElasticSearchService;
+
 
 
     public List<Long> getUsersFromUSearchQueryFiltered(AnnonceDTO annonce) {
@@ -39,33 +31,34 @@ public class SearchService {
                         UQuerySearchSpecification.filterByPriceRange(annonce.getPrix()));
             }
 
+            if(annonce.getTypeBien() != null){
+                uSearchQuerySpecification = uSearchQuerySpecification.and(UQuerySearchSpecification.filterByTypeBien(annonce.getTypeBien()));
+            }
+            if(annonce.getRooms() != null){
+                uSearchQuerySpecification = uSearchQuerySpecification.and(UQuerySearchSpecification.filterByRooms(annonce.getRooms()));
+            }
+
 
 
             List<USearchQuery> searchQueries = this.uSearchQueryRepository.findAll(uSearchQuerySpecification);
 
             System.out.println(searchQueries.size());
-            Set<Long> uSearchQDocIds = this.uSearchQElasticSearchService
-                    .getAllUSearchQDocsByQuery(annonce.getTitre() + " " + annonce.getDescription()).stream().map(USearchQDoc::getId).collect(Collectors.toSet());
 
-            System.out.println(uSearchQDocIds.size());
-            return getFilteredUsers(searchQueries,uSearchQDocIds,annonce);
+            return getFilteredUsers(searchQueries,annonce);
 
         } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
-    public List<Long> getFilteredUsers(List<USearchQuery> searchQueries, Set<Long> uSearchQDocIds, AnnonceDTO annonce) {
+    public List<Long> getFilteredUsers(List<USearchQuery> searchQueries, AnnonceDTO annonce) {
         try {
-            // Step 1: Filter queries by matching document IDs
-            List<USearchQuery> filteredByDocIds = searchQueries.stream()
-                    .filter(uSearchQuery -> uSearchQDocIds.contains(uSearchQuery.getId()))
-                    .toList();
 
-            System.out.println("FILTER 1");
+
+
 
             // Step 2: Further filter based on geolocation and radius logic
-            List<USearchQuery> filteredByLocationAndRadius = filteredByDocIds.stream()
+            List<USearchQuery> filteredByLocationAndRadius = searchQueries.stream()
                     .filter(uSearchQuery -> {
                         System.out.println(uSearchQuery.getLatitude() + " " + uSearchQuery.getLongitude() + " " + uSearchQuery.getRadius());
                         if (

@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Fetch;
 import utm.tn.dari.entities.enums.StatusAnnonce;
 import utm.tn.dari.entities.enums.TypeAnnonce;
+import utm.tn.dari.entities.enums.TypeBien;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +24,7 @@ public class USearchQuery {
     private Double latitude;
     private Double longitude;
     private Double radius;
+    private TypeBien typeBien;
     @CreationTimestamp()
     private LocalDateTime createdAt;
 
