@@ -6,10 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import utm.tn.dari.entities.enums.Rooms;
-import utm.tn.dari.entities.enums.StatusAnnonce;
-import utm.tn.dari.entities.enums.TypeAnnonce;
-import utm.tn.dari.entities.enums.TypeBien;
+import utm.tn.dari.entities.enums.*;
 
 import java.util.List;
 
@@ -24,6 +21,7 @@ public class AnnonceDTO {
     String titre;
     String description;
     float prix;
+    LeaseDuration leaseDuration;
     Rooms rooms;
     TypeAnnonce type;
     TypeBien typeBien;

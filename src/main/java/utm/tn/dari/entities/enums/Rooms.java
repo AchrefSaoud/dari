@@ -7,5 +7,5 @@ public enum Rooms {
     S3,
     S4,
     S5,
-    Any
+    ANY
 }

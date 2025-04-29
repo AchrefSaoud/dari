@@ -17,10 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import utm.tn.dari.entities.enums.Rooms;
-import utm.tn.dari.entities.enums.StatusAnnonce;
-import utm.tn.dari.entities.enums.TypeAnnonce;
-import utm.tn.dari.entities.enums.TypeBien;
+import utm.tn.dari.entities.enums.*;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.Dtoes.AnnoncesPageDTO;
 import utm.tn.dari.modules.annonce.exceptions.FileSavingException;
@@ -80,7 +77,7 @@ public class AnnonceController {
                MultipartFile image  = files[0];
                if (image != null) {
                    if (!Objects.requireNonNull(image.getOriginalFilename()).split("\\.")[1].equals("jpg") && !image.getOriginalFilename().split("\\.")[1].equals("jpeg") && !image.getOriginalFilename().split("\\.")[1].equals("png")) {
-                       return ResponseEntity.status(400).body("Image types accepted are jpg and jpeg.");
+                       return ResponseEntity.status(400).body("First file should be an image.Accepted types are jpg and jpeg and png.");
                    }
                }
                for (MultipartFile file : files) {
@@ -142,6 +139,7 @@ public class AnnonceController {
             @RequestParam(value = "postername", required = false) String username,
             @RequestParam(value = "typeBien", required = false) TypeBien typeBien,
             @RequestParam(value = "rooms",required = false) Rooms rooms,
+            @RequestParam(value = "leaseDuration",required = false) LeaseDuration leaseDuration,
             @RequestParam(value = "latitude", required = false) Double latitude,
             @RequestParam(value = "longitude", required = false) Double longitude,
             @RequestParam(value = "radius", required = false) Double radius,
@@ -150,7 +148,7 @@ public class AnnonceController {
 
         try {
             Page<AnnonceDTO> annoncesPage = annonceService.getQueriedAnnonces(
-                    query, type, status, username,minPrix,maxPrix,typeBien,rooms, latitude, longitude, radius, page, size);
+                    query, type, status, username,minPrix,maxPrix,typeBien,rooms,leaseDuration, latitude, longitude, radius, page, size);
 
             AnnoncesPageDTO annoncesPageDTO = AnnoncesPageDTO.builder()
                     .annonces(annoncesPage.getContent())
