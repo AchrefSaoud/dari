@@ -16,4 +16,8 @@ public class Haversine {
 
         return EARTH_RADIUS_KM * c;
     }
+
+    public static void main(String[] args) {
+        System.out.println(distance(0,0,57.25530302115965,263.1249618530274));
+    }
 }

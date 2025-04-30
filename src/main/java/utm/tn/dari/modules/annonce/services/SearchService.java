@@ -1,13 +1,9 @@
 package utm.tn.dari.modules.annonce.services;
 
-import jakarta.persistence.criteria.Expression;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.geo.Point;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import utm.tn.dari.entities.USearchQuery;
-import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.Utils.Haversine;
 import utm.tn.dari.modules.annonce.repositories.UQuerySearchSpecification;
@@ -24,26 +20,9 @@ public class SearchService {
 
 
 
-    public List<USearchQuery> getAveragePriceByType(String type) {
-
-        return this.uSearchQueryRepository.findAll().stream()
-                .filter(searchRequest -> searchRequest.getType().name().equals(type)).toList();
-    }
-
-    public List<USearchQuery> getAveragePriceByStatus(String status) {
-
-        return this.uSearchQueryRepository.findAll().stream()
-                .filter(searchRequest -> searchRequest.getStatusAnnonce().name().equals(status)).toList();
-    }
-    public List<USearchQuery> getAveragePriceByDescription(String description) {
-
-        return this.uSearchQueryRepository.findAll().stream()
-                .filter(searchRequest -> searchRequest.getDescription().equals(description)).toList();
-    }
 
 
-
-    public List<User> getUsersFromUSearchQueryFiltered(AnnonceDTO annonce) {
+    public List<Long> getUsersFromUSearchQueryFiltered(AnnonceDTO annonce) {
         try {
             Specification<USearchQuery> uSearchQuerySpecification = Specification.where(null);
 
@@ -52,20 +31,36 @@ public class SearchService {
                         UQuerySearchSpecification.filterByPriceRange(annonce.getPrix()));
             }
 
-            if (annonce.getTitre() != null) {
-                uSearchQuerySpecification = uSearchQuerySpecification.and(
-                        UQuerySearchSpecification.filterByTitle(annonce.getTitre()));
+            if(annonce.getTypeBien() != null){
+                uSearchQuerySpecification = uSearchQuerySpecification.and(UQuerySearchSpecification.filterByTypeBien(annonce.getTypeBien()));
+            }
+            if(annonce.getRooms() != null){
+                uSearchQuerySpecification = uSearchQuerySpecification.and(UQuerySearchSpecification.filterByRooms(annonce.getRooms()));
             }
 
-            if (annonce.getDescription() != null) {
-                uSearchQuerySpecification = uSearchQuerySpecification.and(
-                        UQuerySearchSpecification.filterByDescription(annonce.getDescription()));
-            }
+
 
             List<USearchQuery> searchQueries = this.uSearchQueryRepository.findAll(uSearchQuerySpecification);
 
-            return searchQueries.stream()
+            System.out.println(searchQueries.size());
+
+            return getFilteredUsers(searchQueries,annonce);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+    public List<Long> getFilteredUsers(List<USearchQuery> searchQueries, AnnonceDTO annonce) {
+        try {
+
+
+
+
+            // Step 2: Further filter based on geolocation and radius logic
+            List<USearchQuery> filteredByLocationAndRadius = searchQueries.stream()
                     .filter(uSearchQuery -> {
+                        System.out.println(uSearchQuery.getLatitude() + " " + uSearchQuery.getLongitude() + " " + uSearchQuery.getRadius());
                         if (
                                 annonce.getLatitude() != null &&
                                         annonce.getLongitude() != null &&
@@ -77,20 +72,32 @@ public class SearchService {
                                     annonce.getLatitude(), annonce.getLongitude(),
                                     uSearchQuery.getLatitude(), uSearchQuery.getLongitude()
                             );
+                            System.out.println("LATITUDE "+annonce.getLatitude());
                             System.out.println("Distance " + distance);
                             System.out.println("Radius " + uSearchQuery.getRadius());
                             return distance <= uSearchQuery.getRadius(); // ✅ correct logic
                         }
                         return true; // skip filter if any value is missing
                     })
-                    .map(USearchQuery::getUser)
-                    .distinct()
                     .toList();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
-    }
+            // Step 3: Extract users and use a Set to ensure distinct results
 
+            // Convert the Set back to a List
+            // Collect to a Set to handle uniqueness
+
+            System.out.println("FILTER 2");
+
+            List<Long> usersIds = filteredByLocationAndRadius.stream()
+                    .map(uSearchQuery -> uSearchQuery.getUser().getId()).distinct().toList();
+            System.out.println("FILTER 3");
+
+            return usersIds;
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
+
+    }
 }

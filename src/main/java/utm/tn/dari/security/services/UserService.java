@@ -10,6 +10,9 @@ import lombok.AllArgsConstructor;
 import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.authentication.repositories.UserRepository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 //user service mahich service reel mtea user mais just pour implementer l'interface UserDetailsService li nst77agouha fi spring security
 
 @Service("securityUserService")
@@ -32,6 +35,14 @@ public class UserService implements UserDetailsService {
         );
     }
 
+    public List<User> getAllByIds(List<Long> ids){
+        try {
+            return userRepository.findAllByIdIn(ids);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
     public User save(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists");

@@ -7,23 +7,26 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.jpa.domain.Specification;
 import utm.tn.dari.entities.Annonce;
 import utm.tn.dari.entities.USearchQuery;
+import utm.tn.dari.entities.enums.Rooms;
+import utm.tn.dari.entities.enums.TypeBien;
 
 public class UQuerySearchSpecification {
-    public static Specification<USearchQuery> filterByDescription(String description) {
+    public static Specification<USearchQuery> filterByRooms(Rooms rooms) {
         return (root, query, criteriaBuilder) -> {
-            if (description == null || description.trim().isEmpty()) {
+            if (rooms == null) {
                 return null; // No filter applied
             }
-            return criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), "%" + description.trim().toLowerCase() + "%");
+            return criteriaBuilder.equal(root.get("rooms"),rooms);
         };
     }
 
-    public static Specification<USearchQuery> filterByTitle(String title) {
+
+    public static Specification<USearchQuery> filterByTypeBien(TypeBien typeBien) {
         return (root, query, criteriaBuilder) -> {
-            if (title == null || title.trim().isEmpty()) {
+            if (typeBien == null ) {
                 return null; // No filter applied
             }
-            return criteriaBuilder.like(criteriaBuilder.lower(root.get("titre")), "%" +  title.trim().toLowerCase() + "%");
+            return criteriaBuilder.equal(root.get("typeBien"),typeBien);
         };
     }
 
