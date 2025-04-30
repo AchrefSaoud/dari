@@ -1,5 +1,6 @@
 package utm.tn.dari.entities;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.*;
@@ -8,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.geo.Point;
 import utm.tn.dari.entities.enums.StatusAnnonce;
 import utm.tn.dari.entities.enums.TypeAnnonce;
@@ -47,6 +49,8 @@ public class Annonce {
     private List<String> attachmentPaths;
 
 
+    @CreationTimestamp()
+    private LocalDateTime postedAt;
 
 
     @Enumerated(EnumType.STRING)

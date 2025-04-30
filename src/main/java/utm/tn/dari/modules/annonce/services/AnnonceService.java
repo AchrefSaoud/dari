@@ -503,6 +503,7 @@ public class AnnonceService {
                         .latitude(annonce.getLatitude())
                         .longitude(annonce.getLongitude())
                         .attachmentPaths(annonce.getAttachmentPaths())
+                        .postedAt(annonce.getPostedAt())
                         .build();
                 annonceDTOs.add(annonceDTO);
             }

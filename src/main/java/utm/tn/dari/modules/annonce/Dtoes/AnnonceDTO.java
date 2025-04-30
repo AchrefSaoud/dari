@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import utm.tn.dari.entities.enums.StatusAnnonce;
 import utm.tn.dari.entities.enums.TypeAnnonce;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -27,6 +28,7 @@ public class AnnonceDTO {
     Long userId;
     Double longitude;
     Double latitude;
+    LocalDateTime postedAt;
     @Schema(hidden = true)
     List<String> attachmentPaths;
 
