@@ -73,7 +73,7 @@ public class VisiteController {
         visiteService.deleteVisite(visiteId, userId);
         return ResponseEntity.ok().build();
     }
-    @PostMapping("/cancel-as-client/{visiteId}/{userId}")
+    @PutMapping("/cancel-as-client/{visiteId}/{userId}")
     public ResponseEntity<Visite> cancelVisite(
             @PathVariable Long visiteId,
             @PathVariable Long userId) {

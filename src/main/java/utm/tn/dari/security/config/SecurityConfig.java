@@ -44,12 +44,11 @@ public class SecurityConfig {
                     "/v3/api-docs/**", 
                     "/swagger-resources/**", 
                     "/webjars/**"
-                    //"/api/visites"
                 ).permitAll()
                 .requestMatchers("/api/credit/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/visites/**").permitAll()
-
+                    .requestMatchers("/api/reclamations/**").permitAll()
                     .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults());
