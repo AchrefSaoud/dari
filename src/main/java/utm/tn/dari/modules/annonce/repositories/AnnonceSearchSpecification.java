@@ -4,15 +4,24 @@ import jakarta.persistence.criteria.*;
 import org.springframework.data.geo.Point;
 import org.springframework.data.jpa.domain.Specification;
 import utm.tn.dari.entities.Annonce;
-import utm.tn.dari.entities.enums.StatusAnnonce;
-import utm.tn.dari.entities.enums.TypeAnnonce;
+import utm.tn.dari.entities.enums.*;
 
 public class AnnonceSearchSpecification {
 
     // Filter by title (case insensitive)
-    public static Specification<Annonce> filterByTitle(String title) {
+    public static Specification<Annonce> filterByLeaseDuration(LeaseDuration leaseDuration) {
         return (root, query, criteriaBuilder) ->
-                title == null || title.isEmpty() ? null : criteriaBuilder.like(criteriaBuilder.lower(root.get("titre")), "%" + title.toLowerCase() + "%");
+                leaseDuration == null || leaseDuration.equals(LeaseDuration.ANY) ? null : criteriaBuilder.equal(root.get("leaseDuration"),leaseDuration);
+    }
+
+    public static Specification<Annonce> filterByTypeBien(TypeBien typeBien) {
+        return (root, query, criteriaBuilder) ->
+                typeBien == null || typeBien.equals(TypeBien.ANY) ? null : criteriaBuilder.equal(root.get("typeBien"),typeBien);
+    }
+
+    public static Specification<Annonce> filterByRooms(Rooms rooms) {
+        return (root, query, criteriaBuilder) ->
+                rooms == null  ? null : criteriaBuilder.equal(root.get("rooms"),rooms);
     }
 
     // Filter by description (case insensitive)

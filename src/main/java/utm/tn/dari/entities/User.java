@@ -62,7 +62,12 @@ public class User {
             .collect(Collectors.toList());
     }
     
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "abonnement_id")
     private Abonnement abonnement;
+
+    @Override
+    public int hashCode(){
+        return id.hashCode();
+    }
 }
