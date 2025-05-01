@@ -64,4 +64,8 @@ public class InMemoryVectorStore implements VectorStoreService {
         
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
+    @Override
+    public Set<String> getAllDocumentIds() {
+        return documentChunks.keySet();
+    }
 }

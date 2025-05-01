@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import utm.tn.dari.modules.chatBot.services.GeminiService;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
+
 import utm.tn.dari.modules.chatBot.dtos.GeminiRequest;
 import utm.tn.dari.modules.chatBot.dtos.GeminiResponse;
 
@@ -66,9 +68,25 @@ public class ChatController {
         }
     }
 
+    @GetMapping("/documents")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Set<String>> getAllDocuments() {
+        try {
+            Set<String> documentIds = geminiService.getAllDocuments();
+            return ResponseEntity.ok(documentIds);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @DeleteMapping("/document/{documentId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> deleteDocument(@PathVariable String documentId) {
-        return ResponseEntity.ok("Document deletion not implemented in this example");
+        try {
+            String result = geminiService.deleteDocument(documentId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error deleting document: " + e.getMessage());
+        }
     }
 }
