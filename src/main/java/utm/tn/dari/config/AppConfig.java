@@ -12,17 +12,18 @@ public class AppConfig {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
-        @Bean
+
+    @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins("*") 
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") 
-                        .allowedHeaders("*") 
-                        .allowCredentials(false) 
-                        .maxAge(3600); 
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH") 
+                        .allowedHeaders("*")
+                        .allowCredentials(false)
+                        .maxAge(3600);
             }
         };
     }

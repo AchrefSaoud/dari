@@ -152,6 +152,7 @@ public class UserController {
             )
         )
     })
+    @CrossOrigin(origins = "*", methods = {RequestMethod.PATCH, RequestMethod.OPTIONS})
     public ResponseEntity<UserResponseDto> updateUserStatus(
             @PathVariable Long id,
             @RequestBody UserStatusDto statusDto) {
@@ -232,7 +233,10 @@ public class UserController {
             )
         )
     })
-    public ResponseEntity<Page<UserResponseDto>> getAllUsers(Pageable pageable) {
-        return ResponseEntity.ok(userService.getAllUsers(pageable));
-    }
+    public ResponseEntity<Page<UserResponseDto>> getAllUsers(
+        Pageable pageable,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String role) {
+    return ResponseEntity.ok(userService.getAllUsers(pageable, search, role));
+}
 }

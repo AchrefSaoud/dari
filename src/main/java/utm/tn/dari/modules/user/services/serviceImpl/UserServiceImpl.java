@@ -1,6 +1,5 @@
 package utm.tn.dari.modules.user.services.serviceImpl;
 
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -8,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import utm.tn.dari.entities.User;
+import utm.tn.dari.entities.enums.Role;
 import utm.tn.dari.modules.authentication.repositories.UserRepository;
 import utm.tn.dari.modules.user.dtos.UserResponseDto;
 import utm.tn.dari.modules.user.dtos.UserStatusDto;
@@ -66,8 +66,44 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<UserResponseDto> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable)
-                .map(userMapper::toResponseDto);
+    public Page<UserResponseDto> getAllUsers(Pageable pageable, String searchTerm, String roleStr) {
+        if (searchTerm != null && !searchTerm.isEmpty() && roleStr != null && !roleStr.isEmpty()) {
+            // Convert string role to enum
+            Role role = convertStringToRole(roleStr);
+            
+            // Filter by both search term and role
+            return userRepository.findByUsernameContainingIgnoreCaseOrNomContainingIgnoreCaseAndRoles_Name(
+                    searchTerm, role, pageable)
+                    .map(userMapper::toResponseDto);
+        } else if (searchTerm != null && !searchTerm.isEmpty()) {
+            // Filter only by search term
+            return userRepository.findByUsernameContainingIgnoreCaseOrNomContainingIgnoreCase(
+                    searchTerm, pageable)
+                    .map(userMapper::toResponseDto);
+        } else if (roleStr != null && !roleStr.isEmpty()) {
+            // Convert string role to enum
+            Role role = convertStringToRole(roleStr);
+            
+            // Filter only by role
+            return userRepository.findByRoles_Name(role, pageable)
+                    .map(userMapper::toResponseDto);
+        } else {
+            // No filters - return all
+            return userRepository.findAll(pageable)
+                    .map(userMapper::toResponseDto);
+        }
+    }
+    
+    private Role convertStringToRole(String roleStr) {
+        try {
+            if (!roleStr.startsWith("ROLE_")) {
+                roleStr = "ROLE_" + roleStr.toUpperCase();
+            } else {
+                roleStr = roleStr.toUpperCase();
+            }
+            return Role.valueOf(roleStr);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid role: " + roleStr);
+        }
     }
 }
