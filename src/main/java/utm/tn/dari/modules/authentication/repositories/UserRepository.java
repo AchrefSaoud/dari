@@ -10,4 +10,5 @@ import utm.tn.dari.entities.User;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     List<User> findByAbonnementId(Long abonnementId);
+    List<User> findAllByIdIn(List<Long> ids);
 }

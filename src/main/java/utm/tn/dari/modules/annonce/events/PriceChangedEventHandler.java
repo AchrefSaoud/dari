@@ -7,6 +7,7 @@ import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.services.MailingService;
 import utm.tn.dari.modules.annonce.services.SearchService;
+import utm.tn.dari.security.services.UserService;
 
 import java.util.List;
 
@@ -15,6 +16,9 @@ public class PriceChangedEventHandler {
 
     @Autowired
     private MailingService mailingService;
+
+    @Autowired
+    private UserService userService;
     
     @Autowired
     private SearchService searchService;
@@ -25,10 +29,11 @@ public class PriceChangedEventHandler {
         float oldPrice = event.getOldPrice();
         float newPrice = event.getNewPrice();
         
-        List<User> interestedUsers = searchService.getUsersFromUSearchQueryFiltered(annonceDTO);
-        
+        List<Long> interestedUsers = searchService.getUsersFromUSearchQueryFiltered(annonceDTO);
 
-        for (User user : interestedUsers) {
+        List<User> users = userService.getAllByIds(interestedUsers);
+
+        for (User user : users) {
             try {
                 mailingService.sendPriceChangeNotificationEmail(
                     user.getUsername(),

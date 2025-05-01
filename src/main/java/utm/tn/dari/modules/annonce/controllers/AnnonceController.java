@@ -1,5 +1,6 @@
 package utm.tn.dari.modules.annonce.controllers;
 
+import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,17 +9,15 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import utm.tn.dari.entities.enums.StatusAnnonce;
-import utm.tn.dari.entities.enums.TypeAnnonce;
+import utm.tn.dari.entities.enums.*;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.Dtoes.AnnoncesPageDTO;
 import utm.tn.dari.modules.annonce.exceptions.FileSavingException;
@@ -28,6 +27,8 @@ import utm.tn.dari.modules.annonce.services.AnnonceService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/api/annonce")
 public class AnnonceController {
@@ -63,24 +64,47 @@ public class AnnonceController {
             @Parameter(description = "Données de l'annonce au format JSON",
                     example = "{ \"titre\": \"Annonce 1\", \"description\": \"Description de l'annonce\", \"prix\": 100.0, \"type\": \"VENTE\" }")
             @RequestPart("data") String data,
+
             @Parameter(description = "Fichiers joints (taille maximale de chaque fichier : 5MB, taille maximale totale : 500MB)",
                     content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE))
             @RequestPart(value = "files", required = false) MultipartFile[] files) {
         try {
-            if (files != null) {
-                for (MultipartFile file : files) {
-                    if (file.getSize() > MAX_FILE_SIZE) {
-                        return ResponseEntity.status(400).body("File size exceeds the maximum allowed limit of 5MB: " + file.getOriginalFilename());
-                    }
-                }
-            }
+
+
+         List<MultipartFile> multipartFiles = new ArrayList<>();
+
+           if(files != null && files.length != 0) {
+               MultipartFile image  = files[0];
+               if (image != null) {
+                   if (!Objects.requireNonNull(image.getOriginalFilename()).split("\\.")[1].equals("jpg") && !image.getOriginalFilename().split("\\.")[1].equals("jpeg") && !image.getOriginalFilename().split("\\.")[1].equals("png")) {
+                       return ResponseEntity.status(400).body("First file should be an image.Accepted formats are jpg and jpeg and png.");
+                   }
+               }
+               for (MultipartFile file : files) {
+                   if (file.getSize() > MAX_FILE_SIZE) {
+                       return ResponseEntity.status(400).body("File size exceeds the maximum allowed limit of 5MB: " + file.getOriginalFilename());
+                   }
+               }
+               multipartFiles.addAll(List.of(files));
+
+           }else {
+               return ResponseEntity.status(400).body("First file should not be null.Accepted formats are jpg and jpeg and png.");
+
+           }
             ObjectMapper objectMapper = new ObjectMapper();
             AnnonceDTO annonceDTO = objectMapper.readValue(data, AnnonceDTO.class);
-            List<MultipartFile> multipartFiles = new ArrayList<>();
-            if(files != null){
-                multipartFiles = List.of(files);
+            if(annonceDTO.getTypeBien() == null ){
+                return ResponseEntity.status(400).body("Type du Bien ne peut etre null");
+
             }
-            return ResponseEntity.ok(annonceService.postAnnonce(annonceDTO, multipartFiles));
+            if(annonceDTO.getType() == null){
+                return ResponseEntity.status(400).body("Type d'annonce ne peut etre null");
+            }
+            if(annonceDTO.getRooms() == null){
+                return ResponseEntity.status(400).body("Le champ rooms ne peut etre null");
+            }
+
+            return ResponseEntity.ok(annonceService.postAnnonce(annonceDTO,multipartFiles));
         } catch (Exception e) {
             if (e instanceof FileSavingException) {
                 return ResponseEntity.status(400).body(e.getMessage());
@@ -110,13 +134,15 @@ public class AnnonceController {
     @SecurityRequirement(name = "bearerAuth")
 
     public ResponseEntity<?> getQueriedAnnonces(
-            @RequestParam(value = "titre", required = false) String titre,
-            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "query",required = false) String query,
             @RequestParam(value = "minPrix", required = false) Float minPrix,
             @RequestParam(value = "maxPrix", required = false) Float maxPrix,
             @RequestParam(value = "type", required = false) TypeAnnonce type,
             @RequestParam(value = "status", required = false) StatusAnnonce status,
             @RequestParam(value = "postername", required = false) String username,
+            @RequestParam(value = "typeBien", required = false) TypeBien typeBien,
+            @RequestParam(value = "rooms",required = false) Rooms rooms,
+            @RequestParam(value = "leaseDuration",required = false) LeaseDuration leaseDuration,
             @RequestParam(value = "latitude", required = false) Double latitude,
             @RequestParam(value = "longitude", required = false) Double longitude,
             @RequestParam(value = "radius", required = false) Double radius,
@@ -125,7 +151,7 @@ public class AnnonceController {
 
         try {
             Page<AnnonceDTO> annoncesPage = annonceService.getQueriedAnnonces(
-                    titre, description, type, status, username,minPrix,maxPrix, latitude, longitude, radius, page, size);
+                    query, type, status, username,minPrix,maxPrix,typeBien,rooms,leaseDuration, latitude, longitude, radius, page, size);
 
             AnnoncesPageDTO annoncesPageDTO = AnnoncesPageDTO.builder()
                     .annonces(annoncesPage.getContent())
@@ -154,8 +180,6 @@ public class AnnonceController {
 
 
 
-
-
     @PreAuthorize("hasRole('ROLE_USER')")
     @Operation(
             summary = "Récupérer une annonce par son ID",
@@ -175,6 +199,8 @@ public class AnnonceController {
             }
     )
     @GetMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
+
     public ResponseEntity<?> getAnnonceById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(annonceService.getAnnonceById(id));
@@ -211,27 +237,40 @@ public class AnnonceController {
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             }
     )
+    @SecurityRequirement(name = "bearerAuth")
+
     @PutMapping(value = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateAnnonce(
             @PathVariable Long id,
             @RequestPart("data") String annonceDTOJson,
+            @RequestPart(value = "image",required = false) MultipartFile image,
             @RequestPart(value = "files", required = false) MultipartFile[] files) {
         try {
-            if (files != null) {
-                for (MultipartFile file : files) {
-                    if (file.getSize() > MAX_FILE_SIZE) {
-                        return ResponseEntity.status(400).body("File size exceeds the maximum allowed limit of 5MB: " + file.getOriginalFilename());
-                    }
-                }
-            }
 
             ObjectMapper objectMapper = new ObjectMapper();
             AnnonceDTO annonceDTO = objectMapper.readValue(annonceDTOJson, AnnonceDTO.class);
             List<MultipartFile> multipartFiles = new ArrayList<>();
-            if(files != null){
-                multipartFiles = List.of(files);
+            if(files != null && files.length != 0) {
+                image = files[0];
+                if (image != null) {
+                    if (!Objects.requireNonNull(image.getOriginalFilename()).split("\\.")[1].equals("jpg") && !image.getOriginalFilename().split("\\.")[1].equals("jpeg") && !image.getOriginalFilename().split("\\.")[1].equals("png")) {
+                        return ResponseEntity.status(400).body("Image formats accepted are jpg, jpeg and png.");
+                    }
+                }
+                for (MultipartFile file : files) {
+                    if (file.getSize() > MAX_FILE_SIZE) {
+                        return ResponseEntity.status(400).body("File size exceeds the maximum allowed limit of 5MB: " + file.getOriginalFilename());
+                    }
+
+                }
+                multipartFiles.addAll(List.of(files));
+
+            }else {
+                return ResponseEntity.status(400).body("First file should not be null.Accepted formats are jpg and jpeg and png.");
+
             }
-            return ResponseEntity.ok(annonceService.updateAnnonce(id, annonceDTO, multipartFiles));
+
+            return ResponseEntity.ok(annonceService.updateAnnonce(id, annonceDTO,multipartFiles));
         } catch (Exception e) {
             if (e instanceof FileSavingException) {
                 return ResponseEntity.status(400).body(e.getMessage());
@@ -247,6 +286,8 @@ public class AnnonceController {
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
+    @SecurityRequirement(name = "bearerAuth")
+
     @Operation(
             summary = "Supprimer une annonce",
             description = "Cette méthode permet de supprimer une annonce en fonction de son ID.",
