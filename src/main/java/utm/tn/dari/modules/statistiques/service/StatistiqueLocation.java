@@ -55,4 +55,5 @@ public class StatistiqueLocation {
         return result;
     }
 
+
 }
