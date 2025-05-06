@@ -14,9 +14,11 @@ import utm.tn.dari.entities.Abonnement;
 import utm.tn.dari.entities.enums.TypeAbonnement;
 import utm.tn.dari.modules.abonnement.dtos.AbonnementCreateDto;
 import utm.tn.dari.modules.abonnement.dtos.AbonnementDto;
+import utm.tn.dari.modules.abonnement.dtos.RatingDto;
 import utm.tn.dari.modules.abonnement.mappers.AbonnementMapper;
 import utm.tn.dari.modules.abonnement.services.AbonnementService;
 import org.springframework.web.multipart.MultipartFile;
+import utm.tn.dari.modules.abonnement.services.RatingService;
 import utm.tn.dari.modules.user.exceptions.ResourceNotFoundException;
 
 import java.io.File;
@@ -25,10 +27,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/abonnements")
@@ -39,7 +43,7 @@ public class AbonnementController {
 
     @Autowired
     private final AbonnementService abonnementService;
-
+    private final RatingService ratingService;
     @PostMapping("/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> create(@RequestBody AbonnementCreateDto dto) {
@@ -211,6 +215,7 @@ public class AbonnementController {
     }
 
     @GetMapping("/list")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<AbonnementDto>> list() {
         List<AbonnementDto> abonnements = abonnementService.getAllAbonnements()
                 .stream()

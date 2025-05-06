@@ -2,6 +2,7 @@ package utm.tn.dari.modules.annonce.services;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import utm.tn.dari.entities.Annonce;
 import utm.tn.dari.entities.USearchQuery;
@@ -22,7 +23,10 @@ public class USearchQueryService {
     @Autowired
     AnnonceService  annonceService;
 
-    public USearchQueryDTO saveUSearchQuery(USearchQueryDTO uSearchQueryDTO) throws Exception {
+
+
+    @Async
+    public void saveUSearchQuery(USearchQueryDTO uSearchQueryDTO) throws Exception {
 
         // Check if the user exists
         if(uSearchQueryDTO.getUserId() == null) {
@@ -37,8 +41,7 @@ public class USearchQueryService {
 
         USearchQuery uSearchQuery = new USearchQuery();
         uSearchQuery.setUser(user);
-        uSearchQuery.setTitre(uSearchQueryDTO.getTitre());
-        uSearchQuery.setDescription(uSearchQueryDTO.getDescription());
+        uSearchQuery.setQuery(uSearchQueryDTO.getQuery());
         uSearchQuery.setMinPrix(uSearchQueryDTO.getMinPrix());
         uSearchQuery.setMaxPrix(uSearchQueryDTO.getMaxPrix());
         uSearchQuery.setLatitude(uSearchQueryDTO.getLatitude());
@@ -47,10 +50,11 @@ public class USearchQueryService {
         uSearchQuery.setType(uSearchQueryDTO.getType());
         uSearchQuery.setStatusAnnonce(uSearchQueryDTO.getStatusAnnonce());
 
-        this.uSearchQueryRepository.save(uSearchQuery);
+
+
+       uSearchQuery =   this.uSearchQueryRepository.save(uSearchQuery);
 
 
 
-        return uSearchQueryDTO;
     }
 }

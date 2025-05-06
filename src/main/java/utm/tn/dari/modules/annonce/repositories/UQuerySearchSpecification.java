@@ -7,16 +7,29 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.jpa.domain.Specification;
 import utm.tn.dari.entities.Annonce;
 import utm.tn.dari.entities.USearchQuery;
+import utm.tn.dari.entities.enums.Rooms;
+import utm.tn.dari.entities.enums.TypeBien;
 
 public class UQuerySearchSpecification {
-    public static Specification<USearchQuery> filterByDescription(String description){
-        return (root, query, criteriaBuilder) ->
-                description == null || description.isEmpty() ? null : criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), "%" + description.toLowerCase() + "%");
+    public static Specification<USearchQuery> filterByRooms(Rooms rooms) {
+        return (root, query, criteriaBuilder) -> {
+            if (rooms == null) {
+                return null; // No filter applied
+            }
+            return criteriaBuilder.equal(root.get("rooms"),rooms);
+        };
     }
-    public static Specification<USearchQuery> filterByTitle(String title){
-        return (root, query, criteriaBuilder) ->
-                title == null || title.isEmpty() ? null : criteriaBuilder.like(criteriaBuilder.lower(root.get("titre")), "%" + title.toLowerCase() + "%");
+
+
+    public static Specification<USearchQuery> filterByTypeBien(TypeBien typeBien) {
+        return (root, query, criteriaBuilder) -> {
+            if (typeBien == null ) {
+                return null; // No filter applied
+            }
+            return criteriaBuilder.equal(root.get("typeBien"),typeBien);
+        };
     }
+
 
     public static Specification<USearchQuery> filterByGeolocalisation(Double latitude, Double longitude) {
         return (root, query, cb) -> {
