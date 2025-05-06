@@ -11,7 +11,9 @@ import utm.tn.dari.modules.statistiques.dto.MonthlyStatsDto;
 import utm.tn.dari.modules.statistiques.service.StatistiqueService;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/statistiques")
@@ -48,5 +50,33 @@ public class StatistiqueController {
 
         log.info("REST request to get monthly statistics for year: {}", yearToUse);
         return ResponseEntity.ok(statistiqueService.getMonthlyStats(yearToUse));
+    }
+
+    /**
+     * Récupère le type d'abonnement le plus populaire (le plus souscrit)
+     * @return Le type d'abonnement le plus populaire
+     */
+    @GetMapping("/most-popular-type")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Map<String, Object>> getMostPopularAbonnementType() {
+        log.info("REST request to get most popular abonnement type");
+        AbonnementStatsDto stats = statistiqueService.getAbonnementStats();
+        Map<String, Object> response = new HashMap<>();
+        response.put("mostPopularType", stats.getMostPopularType());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Récupère le montant total généré par les abonnements
+     * @return Le montant total des revenus générés
+     */
+    @GetMapping("/total-revenue")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Map<String, Object>> getTotalRevenue() {
+        log.info("REST request to get total revenue from abonnements");
+        AbonnementStatsDto stats = statistiqueService.getAbonnementStats();
+        Map<String, Object> response = new HashMap<>();
+        response.put("totalRevenue", stats.getTotalRevenue());
+        return ResponseEntity.ok(response);
     }
 }

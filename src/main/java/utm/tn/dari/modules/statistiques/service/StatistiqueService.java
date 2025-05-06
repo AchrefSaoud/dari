@@ -1,4 +1,3 @@
-// src/main/java/utm/tn/dari/modules/statistiques/services/StatistiqueService.java
 package utm.tn.dari.modules.statistiques.service;
 
 import lombok.RequiredArgsConstructor;
@@ -138,5 +137,47 @@ public class StatistiqueService {
         }
 
         return monthlyStats;
+    }
+
+    /**
+     * Récupère le type d'abonnement le plus populaire parmi les utilisateurs
+     * @return Le type d'abonnement le plus souscrit
+     */
+    public TypeAbonnement getMostPopularAbonnementType() {
+        log.info("Recherche du type d'abonnement le plus populaire");
+        List<User> allUsers = userRepository.findAll();
+
+        if (allUsers.isEmpty()) {
+            return null;
+        }
+
+        Map<TypeAbonnement, Long> typeCount = allUsers.stream()
+                .filter(u -> u.getAbonnement() != null)
+                .collect(Collectors.groupingBy(
+                        u -> u.getAbonnement().getType(),
+                        Collectors.counting()));
+
+        if (typeCount.isEmpty()) {
+            return null;
+        }
+
+        return typeCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+    }
+
+    /**
+     * Calcule le montant total généré par tous les abonnements
+     * @return Le revenu total cumulé de tous les abonnements
+     */
+    public BigDecimal getTotalRevenue() {
+        log.info("Calcul du montant total généré par les abonnements");
+        List<User> allUsers = userRepository.findAll();
+
+        return allUsers.stream()
+                .filter(u -> u.getAbonnement() != null)
+                .map(u -> u.getAbonnement().getPrix())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
