@@ -9,14 +9,18 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import utm.tn.dari.entities.Annonce;
 import utm.tn.dari.entities.User;
+import utm.tn.dari.entities.enums.StatusAnnonce;
 import utm.tn.dari.entities.enums.TypeAnnonce;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface AnnonceRepository extends JpaRepository<Annonce,Long>, JpaSpecificationExecutor<Annonce> {
+    long countByStatus(StatusAnnonce status);
 
     Page<Annonce> findAllByUser(User user, Pageable pageable);
 
-    List<Annonce> findByTypeAnnonce(TypeAnnonce type);
+    List<Annonce> findByType(TypeAnnonce type);
+
 }
