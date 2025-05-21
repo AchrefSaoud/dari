@@ -35,6 +35,7 @@ public class Annonce {
 
 
 
+    @Enumerated(EnumType.STRING)
     private LeaseDuration leaseDuration;
 
     @Enumerated(EnumType.STRING)
