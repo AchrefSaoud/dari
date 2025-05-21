@@ -3,6 +3,7 @@ package utm.tn.dari.modules.annonce.services.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import utm.tn.dari.modules.annonce.Dtoes.NewAnnounceEvent;
 import utm.tn.dari.modules.annonce.Dtoes.UserEvent;
 import utm.tn.dari.modules.annonce.services.KafkaProducer;
 
@@ -10,13 +11,18 @@ import utm.tn.dari.modules.annonce.services.KafkaProducer;
 @Service
 public class KafkaProducerImpl implements KafkaProducer {
 
-    private String USER_EVENT_TOPIC = "user-event-topic";
+    private String NEW_ANNOUNCE_TOPIC = "new_announce_topic";
+
     @Autowired
-    private KafkaTemplate<String, UserEvent> kafkaTemplate;
+    private KafkaTemplate<String, NewAnnounceEvent> newAnnounceEventKafkaTemplate;
+
+
+
     @Override
-    public void publishUserEvent(UserEvent userEvent) {
+    public void publishNewAnnonceEvent(NewAnnounceEvent newAnnounceEvent) {
+
         try {
-            kafkaTemplate.send(USER_EVENT_TOPIC,userEvent);
+            newAnnounceEventKafkaTemplate.send(NEW_ANNOUNCE_TOPIC,newAnnounceEvent);
         }catch (Exception e){
             e.printStackTrace();
         }

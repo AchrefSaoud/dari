@@ -15,10 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import utm.tn.dari.entities.Annonce;
 import utm.tn.dari.entities.User;
 import utm.tn.dari.entities.enums.*;
-import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
-import utm.tn.dari.modules.annonce.Dtoes.USearchQueryDTO;
-import utm.tn.dari.modules.annonce.Dtoes.UserEvent;
-import utm.tn.dari.modules.annonce.Dtoes.UserEventType;
+import utm.tn.dari.modules.annonce.Dtoes.*;
 import utm.tn.dari.modules.annonce.Utils.Haversine;
 import utm.tn.dari.modules.annonce.Utils.MultipartFileCompressor;
 import utm.tn.dari.modules.annonce.events.AnnoncePostedEvent;
@@ -70,10 +67,8 @@ public class AnnonceService {
             AnnonceDTO publishedAnnonceDTO = buildAnnonceDTO(annonce);
             publishAnnoncePostedEvent(publishedAnnonceDTO);
 
-            kafkaProducer.publishUserEvent(UserEvent.builder()
-                    .userEventType(UserEventType.POST)
-                    .userId(user.getId())
-                    .annonceDTO(annonceDTO).build());
+            kafkaProducer.publishNewAnnonceEvent(NewAnnounceEvent.builder()
+                    .announceId(annonce.getId()).build());
 
             return publishedAnnonceDTO;
         } catch (Exception e) {
