@@ -43,6 +43,7 @@ public class SecurityConfig {
         httpSecurity
             .securityMatcher("/api/**") 
             .csrf(csrf -> csrf.disable())
+                .cors(httpSecurityCorsConfigurer -> corsConfigurationSource())
             .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(authEntryPoint))
             .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
