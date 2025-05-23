@@ -15,7 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AnnonceDTO {
-    @Schema(hidden = true)
 
     Long id;
     String titre;

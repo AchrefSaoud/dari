@@ -24,6 +24,7 @@ import utm.tn.dari.modules.annonce.exceptions.FileSavingException;
 import utm.tn.dari.modules.annonce.exceptions.ObjectNotFoundException;
 import utm.tn.dari.modules.annonce.exceptions.UnthorizedActionException;
 import utm.tn.dari.modules.annonce.services.AnnonceService;
+import utm.tn.dari.modules.annonce.services.RecommendationService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,9 @@ public class AnnonceController {
 
     @Autowired
     private AnnonceService annonceService;
+
+    @Autowired
+    private RecommendationService recommendationService;
     final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     @PreAuthorize("hasRole('ROLE_USER')")
@@ -147,8 +151,10 @@ public class AnnonceController {
             @RequestParam(value = "size", defaultValue = "10") int size){
 
         try {
-            Page<AnnonceDTO> annoncesPage = annonceService.getQueriedAnnonces(
-                    query, type, status, username,minPrix,maxPrix,typeBien,rooms,leaseDuration, latitude, longitude, radius, page, size);
+
+
+            Page<AnnonceDTO> annoncesPage = annonceService.getRecommendedAnnoncesForUser(
+                    query, type, status,minPrix,maxPrix, username,typeBien,rooms,leaseDuration, latitude, longitude, radius, page, size);
 
             AnnoncesPageDTO annoncesPageDTO = AnnoncesPageDTO.builder()
                     .annonces(annoncesPage.getContent())
@@ -172,7 +178,8 @@ public class AnnonceController {
             }
             else {
                 return ResponseEntity.status(400).body(e.getMessage());
-            }        }
+            }
+        }
     }
 
 

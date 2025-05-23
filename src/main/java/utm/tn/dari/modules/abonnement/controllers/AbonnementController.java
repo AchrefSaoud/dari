@@ -67,7 +67,7 @@ public class AbonnementController {
 
             return ResponseEntity.ok(dto);
         } catch (ResourceNotFoundException e) {
-            log.error("Abonnement not found with id: {}", id, e);
+            System.out.println("Abonnement introuvable avec l'ID: " + id);
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body("Abonnement introuvable avec l'ID: " + id);

@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
 import org.springframework.data.geo.Point;
 import utm.tn.dari.entities.enums.*;
 import utm.tn.dari.modules.location.entities.DemandeLocation;
@@ -33,6 +34,7 @@ public class Annonce {
 
 
 
+    @Enumerated(EnumType.STRING)
     private LeaseDuration leaseDuration;
 
     @Enumerated(EnumType.STRING)
@@ -52,7 +54,7 @@ public class Annonce {
 
 
 
-    @ElementCollection 
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> attachmentPaths;
 
 
