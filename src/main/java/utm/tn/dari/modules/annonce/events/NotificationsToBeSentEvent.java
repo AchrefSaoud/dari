@@ -7,6 +7,6 @@ import java.util.List;
 @Data
 public class NotificationsToBeSentEvent {
 
-    private List<Long> simAnnouncesIds ;
+    private List<Long> similarIds ;
     private Long announceId;
 }

@@ -24,7 +24,7 @@ public class KafkaListenerServiceImpl implements KafkaListenerService {
     @Override
     public void listenToTopic(NotificationsToBeSentEvent notificationsToBeSentEvent) {
         try {
-            List<AnnonceDTO> simAnnonces = annonceService.getAllAnnoncesByIds(notificationsToBeSentEvent.getSimAnnouncesIds());
+            List<AnnonceDTO> simAnnonces = annonceService.getAllAnnoncesByIds(notificationsToBeSentEvent.getSimilarIds());
             if(simAnnonces.isEmpty()){
                 System.out.println("No annonce found");
                 return;
@@ -34,7 +34,6 @@ public class KafkaListenerServiceImpl implements KafkaListenerService {
                 List<UserDto> usersByAnnounceId = recommendationService.getUsersByAnnounceId(annonce.getId());
                 if(usersByAnnounceId.isEmpty()){
                     System.out.println("No users found");
-                    return;
                 }
                 users.addAll(usersByAnnounceId);
             }

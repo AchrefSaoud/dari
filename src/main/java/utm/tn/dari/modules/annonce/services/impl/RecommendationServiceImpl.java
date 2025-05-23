@@ -32,6 +32,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     public List<UserDto> getUsersByAnnounceId(Long announceId) {
        try {
                 List<UserDto> users = new ArrayList<>();
+                System.out.println(" announceId: " + announceId);
                 Annonce annonce = annonceRepository.getReferenceById(announceId);
                 List<utm.tn.dari.entities.Recommendation> recommendations = recommendationRepository.findByAnnonce(annonce);
                 if (recommendations.isEmpty()) {

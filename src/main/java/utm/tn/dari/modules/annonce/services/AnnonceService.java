@@ -357,6 +357,9 @@ public class AnnonceService {
         if (annonceDTO.getType().equals(TypeAnnonce.VENTE) && annonceDTO.getLeaseDuration() != null) {
             throw new ObjectNotFoundException("Lease duration cannot be assigned");
         }
+        if(annonceDTO.getType().equals(TypeAnnonce.VENTE)){
+            annonceDTO.setLeaseDuration(LeaseDuration.NA);
+        }
     }
 
     private Annonce buildAnnonceFromDTO(AnnonceDTO annonceDTO, User user, List<String> attachmentPaths) {
