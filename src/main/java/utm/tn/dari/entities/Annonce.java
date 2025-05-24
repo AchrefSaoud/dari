@@ -15,6 +15,8 @@ import utm.tn.dari.modules.location.entities.Demande;
 @NoArgsConstructor
 @Table(name = "annonce")
 @Entity
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 public class Annonce {

@@ -13,6 +13,7 @@ import utm.tn.dari.modules.chatBot.services.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -200,6 +201,22 @@ public class GeminiServiceImpl implements GeminiService {
         } catch (Exception e) {
             logger.error("Error processing file {}", file.getOriginalFilename(), e);
             throw e;
+        }
+    }
+
+    @Override
+    public Set<String> getAllDocuments() {
+        return vectorStoreService.getAllDocumentIds();
+    }
+
+    @Override
+    public String deleteDocument(String documentId) {
+        try {
+            vectorStoreService.deleteDocument(documentId);
+            return "Document with ID " + documentId + " deleted successfully";
+        } catch (Exception e) {
+            logger.error("Error deleting document {}", documentId, e);
+            throw new RuntimeException("Failed to delete document: " + e.getMessage());
         }
     }
 }

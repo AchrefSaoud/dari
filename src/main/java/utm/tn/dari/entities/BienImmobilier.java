@@ -27,12 +27,12 @@ public class BienImmobilier {
     @JsonBackReference
     @ToString.Exclude
     private Contrat contrat;
-
+/*
     @OneToMany(mappedBy = "bienImmobilier", fetch = FetchType.LAZY)
     @JsonManagedReference
     @ToString.Exclude
     private List<Visite> visites;
-
+*/
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proprietaire_id")
     @JsonBackReference

@@ -52,9 +52,9 @@ public class User {
     @JsonManagedReference
     private List<Annonce> annonces;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    /*@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<Visite> visites;
+    private List<Visite> visites;*/
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
