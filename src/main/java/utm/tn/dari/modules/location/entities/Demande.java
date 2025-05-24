@@ -12,7 +12,7 @@ import java.util.List;
 
 @Entity
 @Data
-public class DemandeLocation {
+public class Demande {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
@@ -21,7 +21,7 @@ public class DemandeLocation {
     @ManyToOne(targetEntity = Annonce.class)
     private Annonce annonce;
 
-    @ManyToOne(targetEntity = User.class)
+    @ManyToOne(targetEntity = User.class,fetch = FetchType.EAGER)
     private User user;
 
     private String message;

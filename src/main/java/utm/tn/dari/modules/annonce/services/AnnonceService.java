@@ -27,6 +27,7 @@ import utm.tn.dari.modules.annonce.exceptions.ObjectNotFoundException;
 import utm.tn.dari.modules.annonce.exceptions.UnthorizedActionException;
 import utm.tn.dari.modules.annonce.repositories.AnnonceRepository;
 import utm.tn.dari.modules.annonce.repositories.AnnonceSearchSpecification;
+import utm.tn.dari.modules.annonce.repositories.DemandeRepository;
 import utm.tn.dari.modules.annonce.services.impl.RecommendationServiceImpl;
 import utm.tn.dari.security.services.UserService;
 
@@ -53,6 +54,9 @@ public class AnnonceService {
 
     @Autowired
     private KafkaProducer kafkaProducer;
+
+    @Autowired
+    private DemandeRepository demandeRepository;
 
     @Autowired
     RecommendationServiceImpl recommendationService;
@@ -83,6 +87,22 @@ public class AnnonceService {
         }
     }
 
+    public void deleteRequest(Long annonceId) throws Exception {
+        try {
+            Annonce annonce = getAnnonceByIdOrThrow(annonceId);
+            String username = getAuthenticatedUsername();
+            User user = userService.findByUsername(username);
+
+            if (user == null) {
+                throw new ObjectNotFoundException("User not found");
+            }
+            demandeRepository.deleteByAnnonceAndUser(annonce,user);
+
+
+        } catch (Exception e) {
+            throw e;
+        }
+    }
     public AnnonceDTO updateAnnonce(Long annonceId, AnnonceDTO annonceDTO, List<MultipartFile> attachments) throws Exception {
         List<String> attachmentPaths = processAttachments(attachments);
 
@@ -143,14 +163,24 @@ public class AnnonceService {
         }
     }
 
-    public Page<AnnonceDTO> getMyAnnonces(TypeAnnonce type, StatusAnnonce status, String query,
+    public Page<AnnonceDTO> getMyAnnonces(String query,TypeAnnonce type, StatusAnnonce status,
                                           Float minPrice, Float maxPrice, TypeBien typeBien,
                                           Rooms rooms, LeaseDuration leaseDuration,
                                           Double longitude, Double latitude, Double radius,
                                           int pageNumber, int pageSize) throws Exception {
-        return getQueriedAnnonces(query, type, status, getAuthenticatedUsername(),
-                minPrice, maxPrice, typeBien, rooms, leaseDuration,
-                longitude, latitude, radius, pageNumber, pageSize);
+        try {
+            String getAuthenticatedUsername = getAuthenticatedUsername();
+            if (getAuthenticatedUsername == null || getAuthenticatedUsername.isEmpty()) {
+                throw new ObjectNotFoundException("User not authenticated");
+            }
+            return getQueriedAnnonces(query, type, status, getAuthenticatedUsername,
+                    minPrice, maxPrice, typeBien, rooms, leaseDuration,
+                    longitude, latitude, radius, pageNumber, pageSize);
+        }catch (Exception e){
+            logger.error("Error while getting my annonces", e);
+            throw new Exception("Error while getting my annonces");
+        }
+
     }
 
 
@@ -263,6 +293,36 @@ public class AnnonceService {
         }
     }
 
+    public Page<AnnonceDTO> getMyRequestedAnnounces(int pageNumber, int pageSize) throws Exception{
+        try {
+            return getRequestedAnnounces(getAuthenticatedUsername(),pageNumber,pageSize);
+        }catch (Exception e){
+            logger.error("Error while getting requested annonces", e);
+            throw new Exception("Error while getting requested annonces");
+        }
+    }
+    private Page<AnnonceDTO> getRequestedAnnounces(
+            String username,int pageNumber, int pageSize) throws Exception {
+        try {
+            Pageable pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
+            User user = userService.findByUsername(username);
+            if(user == null){
+                throw new Exception("User Not Found");
+            }
+            Page<Annonce> annonces = annonceRepository.findRequestedByUser(user, pageable);
+
+            List<AnnonceDTO> annonceDTOS = new ArrayList<>();
+            annonces.forEach(annonce -> {
+                annonceDTOS.add(buildAnnonceDTO(annonce));
+            });
+
+
+            return new PageImpl<>(annonceDTOS, pageable, annonces.getTotalElements());
+        } catch (Exception e) {
+            logger.error("Error while getting requested annonces", e);
+            throw new Exception("Error while getting requested annonces");
+        }
+    }
     private List<String> processAttachments(List<MultipartFile> attachments) throws Exception {
         List<String> attachmentPaths = new ArrayList<>();
 
@@ -415,6 +475,7 @@ public class AnnonceService {
                 .typeBien(annonce.getTypeBien())
                 .latitude(annonce.getLatitude())
                 .longitude(annonce.getLongitude())
+                .postedAt(annonce.getPostedAt())
                 .attachmentPaths(annonce.getAttachmentPaths())
                 .build();
     }
@@ -427,6 +488,7 @@ public class AnnonceService {
                 .prix(annonce.getPrix())
                 .type(annonce.getType())
                 .status(annonce.getStatus())
+                .postedAt(annonce.getPostedAt())
                 .userId(annonce.getUser().getId())
                 .build();
     }
@@ -462,6 +524,7 @@ public class AnnonceService {
         if (rooms != null && !rooms.equals(Rooms.ANY)) {
             spec = spec.and(AnnonceSearchSpecification.filterByRooms(rooms));
         }
+
 
         return spec;
     }

@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import utm.tn.dari.entities.enums.*;
 import utm.tn.dari.modules.annonce.Dtoes.AnnonceDTO;
 import utm.tn.dari.modules.annonce.Dtoes.AnnoncesPageDTO;
+import utm.tn.dari.modules.annonce.Dtoes.DeleteResponseDTO;
 import utm.tn.dari.modules.annonce.exceptions.FileSavingException;
 import utm.tn.dari.modules.annonce.exceptions.ObjectNotFoundException;
 import utm.tn.dari.modules.annonce.exceptions.UnthorizedActionException;
@@ -302,7 +303,10 @@ public class AnnonceController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAnnonce(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(annonceService.deleteAnnonce(id));
+            annonceService.deleteAnnonce(id);
+            return ResponseEntity.ok(DeleteResponseDTO.builder()
+                    .message("Annonce deleted successfully")
+                    .build());
         } catch (Exception e) {
             if (e instanceof ObjectNotFoundException) {
                 return ResponseEntity.status(404).body(e.getMessage());
@@ -310,6 +314,108 @@ public class AnnonceController {
                 return ResponseEntity.status(403).body(e.getMessage());
             } else {
                 return ResponseEntity.status(400).body(e.getMessage());
+            }
+        }
+    }
+
+    @DeleteMapping("/requested/{id}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> deleteRequest(@PathVariable Long id) {
+        try {
+            annonceService.deleteRequest(id);
+
+            return ResponseEntity.ok(DeleteResponseDTO.builder()
+                    .message("Request deleted successfully")
+                    .build());
+        } catch (Exception e) {
+            if (e instanceof ObjectNotFoundException) {
+                return ResponseEntity.status(404).body(e.getMessage());
+            } else if (e instanceof UnthorizedActionException) {
+                return ResponseEntity.status(403).body(e.getMessage());
+            } else {
+                return ResponseEntity.status(400).body(e.getMessage());
+            }
+        }
+    }
+    @GetMapping("/mine")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @SecurityRequirement(name = "bearerAuth")
+
+
+    public ResponseEntity<AnnoncesPageDTO> getMyAnnonces(
+            @RequestParam(value = "query",required = false) String query,
+            @RequestParam(value = "minPrix", required = false) Float minPrix,
+            @RequestParam(value = "maxPrix", required = false) Float maxPrix,
+            @RequestParam(value = "type", required = false) TypeAnnonce type,
+            @RequestParam(value = "status", required = false) StatusAnnonce status,
+            @RequestParam(value = "typeBien", required = false) TypeBien typeBien,
+            @RequestParam(value = "rooms",required = false) Rooms rooms,
+            @RequestParam(value = "leaseDuration",required = false) LeaseDuration leaseDuration,
+            @RequestParam(value = "latitude", required = false) Double latitude,
+            @RequestParam(value = "longitude", required = false) Double longitude,
+            @RequestParam(value = "radius", required = false) Double radius,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        try {
+            Page<AnnonceDTO> annoncesPage = annonceService.getMyAnnonces(
+                    query, type, status, minPrix, maxPrix, typeBien, rooms, leaseDuration, latitude, longitude, radius, page, size
+            );
+            AnnoncesPageDTO annoncesPageDTO = AnnoncesPageDTO.builder()
+                    .annonces(annoncesPage.getContent())
+                    .hasPrevious(annoncesPage.hasPrevious())
+                    .hasNext(annoncesPage.hasNext())
+                    .isFirst(annoncesPage.isFirst())
+                    .isLast(annoncesPage.isLast())
+                    .pageNumber(annoncesPage.getNumber())
+                    .totalElements(annoncesPage.getTotalElements())
+                    .totalPages(annoncesPage.getTotalPages())
+                    .pageSize(annoncesPage.getSize())
+                    .build();
+
+            return ResponseEntity.ok(annoncesPageDTO);
+        } catch (Exception e) {
+            if (e instanceof ObjectNotFoundException) {
+                return ResponseEntity.status(404).body(null);
+            } else if (e instanceof UnthorizedActionException) {
+                return ResponseEntity.status(403).body(null);
+            } else {
+                return ResponseEntity.status(400).body(null);
+            }
+        }
+    }
+
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/requested")
+    public ResponseEntity<AnnoncesPageDTO> getRequestedAnnonces(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        try {
+            Page<AnnonceDTO> annoncesPage =
+                    annonceService.getMyRequestedAnnounces(page, size);
+            AnnoncesPageDTO annoncesPageDTO = AnnoncesPageDTO.builder()
+                    .annonces(annoncesPage.getContent())
+                    .hasPrevious(annoncesPage.hasPrevious())
+                    .hasNext(annoncesPage.hasNext())
+                    .isFirst(annoncesPage.isFirst())
+                    .isLast(annoncesPage.isLast())
+                    .pageNumber(annoncesPage.getNumber())
+                    .totalElements(annoncesPage.getTotalElements())
+                    .totalPages(annoncesPage.getTotalPages())
+                    .pageSize(annoncesPage.getSize())
+                    .build();
+
+            return ResponseEntity.ok(annoncesPageDTO);
+        } catch (Exception e) {
+            if (e instanceof ObjectNotFoundException) {
+                return ResponseEntity.status(404).body(null);
+            } else if (e instanceof UnthorizedActionException) {
+                return ResponseEntity.status(403).body(null);
+            } else {
+                return ResponseEntity.status(400).body(null);
             }
         }
     }

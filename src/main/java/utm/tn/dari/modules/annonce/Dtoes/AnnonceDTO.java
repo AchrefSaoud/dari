@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import utm.tn.dari.entities.enums.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -31,6 +32,7 @@ public class AnnonceDTO {
     String imagePath ;
     @Schema(hidden = true)
     List<String> attachmentPaths;
+    LocalDateTime postedAt;
 
 
 
