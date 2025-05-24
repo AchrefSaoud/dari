@@ -4,7 +4,9 @@ import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,7 @@ import org.springframework.orm.hibernate5.SpringSessionContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import utm.tn.dari.config.KafkaEnableConfig;
 import utm.tn.dari.entities.Annonce;
 import utm.tn.dari.entities.User;
 import utm.tn.dari.entities.enums.*;
@@ -46,13 +49,15 @@ public class AnnonceService {
     private static final float MAX_FILE_SIZE_MB = 10;
     private static final float IMAGE_COMPRESSION_QUALITY = 0.7f;
 
+    @Value("${kafka.enabled:false}")
+    private boolean kafkaEnabled;
     @Autowired
     private AnnonceRepository annonceRepository;
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
-    @Autowired
+    @Autowired( required = false)
     private KafkaProducer kafkaProducer;
 
     @Autowired
@@ -76,8 +81,12 @@ public class AnnonceService {
             AnnonceDTO publishedAnnonceDTO = buildAnnonceDTO(annonce);
             publishAnnoncePostedEvent(publishedAnnonceDTO);
 
-            kafkaProducer.publishNewAnnonceEvent(NewAnnounceEvent.builder()
-                    .announceId(annonce.getId()).build());
+            if(kafkaEnabled){
+                kafkaProducer.publishNewAnnonceEvent(NewAnnounceEvent.builder()
+                        .announceId(annonce.getId()).build());
+            }
+
+
 
             return publishedAnnonceDTO;
         } catch (Exception e) {
