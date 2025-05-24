@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import utm.tn.dari.modules.user.dtos.UserResponseDto;
 import utm.tn.dari.modules.user.dtos.UserStatusDto;
 import utm.tn.dari.modules.user.dtos.UserUpdateDto;
@@ -112,6 +113,63 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(id, userUpdateDto));
     }
 
+    @PutMapping(value = "/{id}/with-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+        summary = "Update user profile with file", 
+        description = "Updates user information including profile picture and other details"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "User updated successfully with profile picture",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE, 
+                schema = @Schema(implementation = UserResponseDto.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "Validation error - Invalid input data or file format",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE, 
+                schema = @Schema(implementation = Map.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404", 
+            description = "User not found",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE, 
+                schema = @Schema(implementation = Map.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "413", 
+            description = "File too large",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE, 
+                schema = @Schema(implementation = Map.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500", 
+            description = "Internal server error",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE, 
+                schema = @Schema(implementation = Map.class)
+            )
+        )
+    })
+    public ResponseEntity<UserResponseDto> updateUserWithFile(
+            @PathVariable Long id,
+            @RequestParam(value = "telephone", required = false) String telephone,
+            @RequestParam(value = "nom", required = false) String nom,
+            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture) {
+        
+        return ResponseEntity.ok(userService.updateUserWithFile(id, telephone, nom, password, profilePicture));
+    }
+
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(
@@ -152,6 +210,7 @@ public class UserController {
             )
         )
     })
+    @CrossOrigin(origins = "*", methods = {RequestMethod.PATCH, RequestMethod.OPTIONS})
     public ResponseEntity<UserResponseDto> updateUserStatus(
             @PathVariable Long id,
             @RequestBody UserStatusDto statusDto) {
@@ -232,7 +291,10 @@ public class UserController {
             )
         )
     })
-    public ResponseEntity<Page<UserResponseDto>> getAllUsers(Pageable pageable) {
-        return ResponseEntity.ok(userService.getAllUsers(pageable));
-    }
+    public ResponseEntity<Page<UserResponseDto>> getAllUsers(
+        Pageable pageable,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String role) {
+    return ResponseEntity.ok(userService.getAllUsers(pageable, search, role));
+}
 }

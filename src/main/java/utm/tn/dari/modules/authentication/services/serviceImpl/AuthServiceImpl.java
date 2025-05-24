@@ -5,7 +5,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import lombok.AllArgsConstructor;
 import utm.tn.dari.entities.User;
 import utm.tn.dari.modules.authentication.dtos.UserLoginDTO;
@@ -44,9 +43,9 @@ public class AuthServiceImpl implements AuthService {
             new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
         );
 
-        final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        final String jwt = jwtUtil.generateToken(userDetails);
+        User user = (User) authentication.getPrincipal();
+        final String jwt = jwtUtil.generateToken(user, user.getId());
 
-        return authMapper.toLoginResponse(userDetails, jwt);
+        return authMapper.toLoginResponse(user, jwt, user.getId());
     }
 }
