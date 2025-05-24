@@ -13,6 +13,7 @@ public class AppConfig {
         return new RestTemplate();
     }
 
+
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {

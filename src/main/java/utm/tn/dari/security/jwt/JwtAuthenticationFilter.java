@@ -5,7 +5,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import utm.tn.dari.security.services.UserService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,10 +53,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     userDetails, null, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                
+                // Optionally set user ID in request attributes if needed
+                Long userId = jwtUtil.extractUserId(jwt);
+                request.setAttribute("userId", userId);
             }
         }
     
         filterChain.doFilter(request, response);
     }
-    
 }

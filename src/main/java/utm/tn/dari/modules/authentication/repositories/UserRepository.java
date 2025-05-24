@@ -32,4 +32,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("searchTerm") String searchTerm,
             @Param("role") Role role,
             Pageable pageable);
+
+@Query("SELECT u FROM User u LEFT JOIN FETCH u.abonnement a LEFT JOIN FETCH a.ratings WHERE u.id = :id")
+Optional<User> findByIdWithAbonnement(@Param("id") Long id);
 }

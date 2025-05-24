@@ -49,10 +49,11 @@ public class AuthMapper {
         return responseDTO;
     }
 
-    public UserLoginResponseDTO toLoginResponse(UserDetails userDetails, String jwt) {
+    public UserLoginResponseDTO toLoginResponse(UserDetails userDetails, String jwt,Long userId) {
         UserLoginResponseDTO responseDTO = new UserLoginResponseDTO();
         responseDTO.setUsername(userDetails.getUsername());
         responseDTO.setJwt(jwt);
+        responseDTO.setUserId(userId);
         return responseDTO;
     }
 }
