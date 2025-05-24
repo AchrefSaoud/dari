@@ -79,4 +79,7 @@ public class Annonce {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime postedAt;
+
+
+
 }

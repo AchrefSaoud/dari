@@ -40,12 +40,12 @@ public class AbonnementService {
             // Numéro du client à personnaliser
             String userPhoneNumber = "+21699263050";
             smsService.sendSms(userPhoneNumber, message);
-        String emailSubject = "Confirmation de votre abonnement";
+/*         String emailSubject = "Confirmation de votre abonnement";
         String emailText = "Veuillez trouver ci-joint les détails de votre abonnement.";
         String userEmail = "jdiditasnim@gmail.com"; // À remplacer par l'email réel de l'utilisateur
 
         emailService.sendEmailWithAttachment(userEmail, emailSubject, emailText, pdfPath);
-
+ */
             return saved;
         }
 

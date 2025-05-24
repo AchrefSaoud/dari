@@ -215,7 +215,6 @@ public class AbonnementController {
     }
 
     @GetMapping("/list")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<AbonnementDto>> list() {
         List<AbonnementDto> abonnements = abonnementService.getAllAbonnements()
                 .stream()

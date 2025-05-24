@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class UserLoginResponseDTO {
-    private String username;
     private String jwt;
+    private Long userId;
+    private String username;
 }
