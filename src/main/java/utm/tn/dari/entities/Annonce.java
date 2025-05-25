@@ -1,13 +1,15 @@
 package utm.tn.dari.entities;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
-import org.springframework.data.geo.Point;
+
+import org.hibernate.annotations.CreationTimestamp;
 import utm.tn.dari.entities.enums.*;
-import utm.tn.dari.modules.location.entities.DemandeLocation;
+import utm.tn.dari.modules.location.entities.Demande;
 
 @Data
 @NoArgsConstructor
@@ -55,7 +57,7 @@ public class Annonce {
 
 
 
-    @ElementCollection 
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> attachmentPaths;
 
 
@@ -67,12 +69,16 @@ public class Annonce {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "annonce")
     @JsonBackReference
     @ToString.Exclude
-    private List<DemandeLocation> demandeLocations;
+    private List<Demande> demandes;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonBackReference
     @ToString.Exclude
     private User user;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime postedAt;
 
 
 

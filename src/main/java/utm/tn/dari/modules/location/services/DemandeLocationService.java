@@ -12,7 +12,7 @@ import utm.tn.dari.modules.annonce.exceptions.UnthorizedActionException;
 import utm.tn.dari.modules.annonce.services.AnnonceService;
 import utm.tn.dari.modules.location.CannotBeAcceptedException;
 import utm.tn.dari.modules.location.dtoes.DemandeLocationDTO;
-import utm.tn.dari.modules.location.entities.DemandeLocation;
+import utm.tn.dari.modules.location.entities.Demande;
 import utm.tn.dari.modules.location.repositories.DemandeLocationRepo;
 import utm.tn.dari.security.services.UserService;
 
@@ -47,7 +47,7 @@ public class DemandeLocationService {
             || getDemandeLocationByAnnonceIdAndStatus(annonce.getId(), DemandeLocationStatus.ACCEPTEE) != null) {
                 throw new CannotBeAcceptedException("La demande de location ne peut pas etre traitée pour ce moment.");
             }
-            DemandeLocation demandeLocation = new DemandeLocation();
+            Demande demandeLocation = new Demande();
             demandeLocation.setDateDebutLocation(demandeLocationDTO.getDateDebut());
             demandeLocation.setDateFinLocation(demandeLocationDTO.getDateFin());
             demandeLocation.setUser(user);
@@ -102,7 +102,7 @@ public class DemandeLocationService {
                 throw new UnthorizedActionException("User not found");
             }
             User userInfo = userService.findByUsername(user.getUsername());
-            DemandeLocation demandeLocation = this.demandeLocationRepo.findById(id).orElseThrow(() -> new ObjectNotFoundException("Demande location not found"));
+            Demande demandeLocation = this.demandeLocationRepo.findById(id).orElseThrow(() -> new ObjectNotFoundException("Demande location not found"));
 
             if(userInfo == null) {
                 throw new UnthorizedActionException("User not found");
@@ -156,7 +156,7 @@ public class DemandeLocationService {
             if(id == null) {
                 throw new IllegalArgumentException("Demande location ID cannot be null");
             }
-            DemandeLocation demandeLocation = this.demandeLocationRepo.findById(id).orElseThrow(() -> new ObjectNotFoundException("Demande location not found"));
+            Demande demandeLocation = this.demandeLocationRepo.findById(id).orElseThrow(() -> new ObjectNotFoundException("Demande location not found"));
             this.demandeLocationRepo.delete(demandeLocation);
         }catch (Exception e){
             if(e instanceof ObjectNotFoundException) {
@@ -166,13 +166,13 @@ public class DemandeLocationService {
             }
         }
     }
-    public DemandeLocation getDemandeLocationByAnnonceIdAndStatus(Long annonceId, DemandeLocationStatus status) throws Exception {
+    public Demande getDemandeLocationByAnnonceIdAndStatus(Long annonceId, DemandeLocationStatus status) throws Exception {
         try {
             Annonce annonce = annonceService.getAnnonceObjById(annonceId);
             if(annonce == null) {
                 throw new ObjectNotFoundException("Annonce not found");
             }
-            for(DemandeLocation demandeLocation : annonce.getDemandeLocations()) {
+            for(Demande demandeLocation : annonce.getDemandes()) {
                 if(demandeLocation.getStatus().equals(status)) {
                     return demandeLocation;
                 }

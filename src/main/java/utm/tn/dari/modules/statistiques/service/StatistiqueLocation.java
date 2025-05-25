@@ -1,7 +1,7 @@
 package utm.tn.dari.modules.statistiques.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import utm.tn.dari.modules.location.entities.DemandeLocation;
+import utm.tn.dari.modules.location.entities.Demande;
 import utm.tn.dari.modules.location.repositories.DemandeLocationRepo;
 
 import java.time.LocalDate;
@@ -26,7 +26,7 @@ public class StatistiqueLocation {
      * @return Map avec la date comme clé et le nombre de demandes comme valeur
      */
     public Map<LocalDate, Long> getDemandeLocationCountPerDay(LocalDate startDate, LocalDate endDate) {
-        List<DemandeLocation> demandes = demandeLocationRepo.findAll();
+        List<Demande> demandes = demandeLocationRepo.findAll();
 
         // Utilisation des streams pour plus de lisibilité et performance
         return demandes.stream()
@@ -44,7 +44,7 @@ public class StatistiqueLocation {
      * @return Map avec le statut comme clé et le nombre de demandes comme valeur
      */
     public Map<String, Long> getDemandeCountByStatus() {
-        List<DemandeLocation> demandes = demandeLocationRepo.findAll();
+        List<Demande> demandes = demandeLocationRepo.findAll();
 
         return demandes.stream()
                 .collect(Collectors.groupingBy(
@@ -59,7 +59,7 @@ public class StatistiqueLocation {
      * @return Map avec le mois (format yyyy-MM) comme clé et le nombre de demandes comme valeur
      */
     public Map<String, Long> getDemandeCountPerMonth() {
-        List<DemandeLocation> demandes = demandeLocationRepo.findAll();
+        List<Demande> demandes = demandeLocationRepo.findAll();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
         return demandes.stream()
@@ -85,7 +85,7 @@ public class StatistiqueLocation {
      * @return Map avec des statistiques sur l'acceptation des demandes
      */
     public Map<String, Object> getDemandeAcceptanceRate() {
-        List<DemandeLocation> demandes = demandeLocationRepo.findAll();
+        List<Demande> demandes = demandeLocationRepo.findAll();
         long total = demandes.size();
 
         if (total == 0) {

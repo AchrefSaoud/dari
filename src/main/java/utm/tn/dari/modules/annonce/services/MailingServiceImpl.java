@@ -5,6 +5,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class MailingServiceImpl  implements MailingService {
 
@@ -12,11 +14,9 @@ public class MailingServiceImpl  implements MailingService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendNotificationEmailForNewAnnouncementToUser(String to, Long announcementId) {
-        try {
 
-            String subject = "Notification de Nouvelle Annonce";
-            String body = String.format("""
+    public String getMailBody(Long announcementId){
+        return String.format("""
                     <html>
                     <head>
                         <meta charset="UTF-8">
@@ -63,6 +63,15 @@ public class MailingServiceImpl  implements MailingService {
                     </body>
                     </html>
                     """,announcementId);
+
+    }
+
+    public void sendNotificationEmailForNewAnnouncementToUser(String to, Long announcementId) {
+        try {
+
+            String subject = "Notification de Nouvelle Annonce";
+
+            String body = getMailBody(announcementId);
 
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mailSender.createMimeMessage());
             mimeMessageHelper.setTo(to);
@@ -156,6 +165,26 @@ public class MailingServiceImpl  implements MailingService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error while sending price change email to user: " + to);
+        }
+    }
+
+    @Override
+    public void sendNotificationEmailForNewAnnouncementToUsers(List<String> to, Long announcementId) {
+        try {
+            to.forEach(email -> {
+                System.out.println("Sending email to: " + email);
+            });
+            String  body = getMailBody(announcementId);
+            String subject = "Notification de Nouvelle Annonce";
+            String[] recipients = to.toArray(new String[0]);
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mailSender.createMimeMessage());
+            mimeMessageHelper.setTo(recipients);
+            mimeMessageHelper.setSubject(subject);
+            mimeMessageHelper.setText(body, true); // Set to true for HTML content
+            mailSender.send(mimeMessageHelper.getMimeMessage());
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException("Error while sending email to users: " + to);
         }
     }
 

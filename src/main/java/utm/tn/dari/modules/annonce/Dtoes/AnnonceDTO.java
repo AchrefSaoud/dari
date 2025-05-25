@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import utm.tn.dari.entities.enums.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -15,7 +16,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AnnonceDTO {
-    @Schema(hidden = true)
 
     Long id;
     String titre;
@@ -32,6 +32,7 @@ public class AnnonceDTO {
     String imagePath ;
     @Schema(hidden = true)
     List<String> attachmentPaths;
+    LocalDateTime postedAt;
 
 
 

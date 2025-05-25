@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.*;
 import org.springframework.data.geo.Point;
 import org.springframework.data.jpa.domain.Specification;
 import utm.tn.dari.entities.Annonce;
+import utm.tn.dari.entities.User;
 import utm.tn.dari.entities.enums.*;
 
 public class AnnonceSearchSpecification {
@@ -56,9 +57,18 @@ public class AnnonceSearchSpecification {
 
     // Filter by username (case insensitive)
     public static Specification<Annonce> filterByUsername(String username) {
-        return (root, query, criteriaBuilder) ->
-                username == null || username.isEmpty() ? null : criteriaBuilder.like(criteriaBuilder.lower(root.get("user").get("username")), "%" + username.toLowerCase() + "%");
+        return (root, query, criteriaBuilder) -> {
+            if (username == null || username.isEmpty()) {
+                return null;
+            }
+            Join<Annonce, User> userJoin = root.join("user"); // Perform the join
+            return criteriaBuilder.equal(
+                    criteriaBuilder.lower(userJoin.get("username")),
+                    username.toLowerCase()
+            );
+        };
     }
+
 
     public static Specification<Annonce> filterByGeolocalisation(Double latitude, Double longitude, Double radius) {
         return (root, query, cb) -> {
