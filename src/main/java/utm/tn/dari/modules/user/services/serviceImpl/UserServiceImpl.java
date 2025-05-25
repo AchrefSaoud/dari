@@ -38,6 +38,9 @@ public class UserServiceImpl implements UserService {
     @Value("${file.upload.directory:uploads/profile-pictures/}")
     private String uploadDirectory;
 
+    @Value("${server.port:8080}") 
+    private String serverPort;
+
     @Value("${file.upload.max-size:5242880}") // 5MB default
     private long maxFileSize;
 
@@ -130,7 +133,7 @@ public class UserServiceImpl implements UserService {
          Path filePath = uploadPath.resolve(uniqueFilename);
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         
-        return "http://localhost:8081/uploads/profile-pictures/" + uniqueFilename;
+       return "http://localhost:" + serverPort + "/uploads/profile-pictures/" + uniqueFilename;
     }
 
     @Override
