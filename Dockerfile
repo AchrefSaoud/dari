@@ -4,7 +4,7 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
-COPY src ./src
+COPY . .
 
 RUN mvn package -DskipTests
 
@@ -13,6 +13,7 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 COPY --from=build /app/target/dari-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/.env .
 
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
