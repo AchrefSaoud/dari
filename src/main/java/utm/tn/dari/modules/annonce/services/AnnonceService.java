@@ -178,11 +178,8 @@ public class AnnonceService {
                                           Double longitude, Double latitude, Double radius,
                                           int pageNumber, int pageSize) throws Exception {
         try {
-            String getAuthenticatedUsername = getAuthenticatedUsername();
-            if (getAuthenticatedUsername == null || getAuthenticatedUsername.isEmpty()) {
-                throw new ObjectNotFoundException("User not authenticated");
-            }
-            return getQueriedAnnonces(query, type, status, getAuthenticatedUsername,
+
+            return getQueriedAnnoncesByUser(query, type, status, null,
                     minPrice, maxPrice, typeBien, rooms, leaseDuration,
                     longitude, latitude, radius, pageNumber, pageSize);
         }catch (Exception e){
@@ -204,11 +201,9 @@ public class AnnonceService {
             Page<AnnonceDTO> dumpAnnonceDtoes = getQueriedAnnonces(query, type, status, searchedUsername,
                     minPrice, maxPrice, typeBien, rooms, leaseDuration,
                     latitude, longitude, radius, pageNumber, pageSize);
-            org.springframework.security.core.userdetails.User userDetails = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (userDetails != null) {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (user != null) {
 
-            User user = userService.findByUsername(userDetails.getUsername());
-            if(user != null) {
                 Page<AnnonceDTO> recommendedAnnonceDTOe = recommendationService.getAnnouncesByUserId(10L, query, type, status,
                         searchedUsername, minPrice, maxPrice, typeBien, rooms, leaseDuration,
                         latitude, longitude, radius, pageNumber, pageSize);
@@ -219,7 +214,7 @@ public class AnnonceService {
                 } else {
                     logger.info("No recommended annonces found for user with ID: " + user.getId());
                 }
-            }
+
             }
             return dumpAnnonceDtoes;
 
@@ -255,6 +250,30 @@ public class AnnonceService {
             throw new Exception("Error while getting the annonces");
         }
     }
+    public Page<AnnonceDTO> getQueriedAnnoncesByUser(String query, TypeAnnonce type, StatusAnnonce status,
+                                               String searchedUsername, Float minPrice, Float maxPrice,
+                                               TypeBien typeBien, Rooms rooms, LeaseDuration leaseDuration,
+                                               Double latitude, Double longitude, Double radius,
+                                               int pageNumber, int pageSize) throws Exception {
+        try {
+            Specification<Annonce> spec = buildSpecificationByUser( query, type, status,
+                    searchedUsername, minPrice, maxPrice, typeBien, rooms, leaseDuration);
+
+            Pageable pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
+            Page<Annonce> annonces = annonceRepository.findAll(spec, pageable);
+
+            List<AnnonceDTO> filteredAnnonces = filterAnnoncesByLocation(annonces, latitude, longitude, radius)
+                    .stream()
+                    .map(this::buildAnnonceDTO)
+                    .collect(Collectors.toList());
+
+            return new PageImpl<>(filteredAnnonces, pageable, annonces.getTotalElements());
+        } catch (Exception e) {
+            logger.error("Error while getting the annonces", e);
+            throw new Exception("Error while getting the annonces");
+        }
+    }
+
 
     public Boolean deleteAnnonce(Long annonceId) throws Exception {
         try {
@@ -502,6 +521,19 @@ public class AnnonceService {
                 .build();
     }
 
+    public Specification<Annonce> buildSpecificationByUser(
+                                                             String query, TypeAnnonce type, StatusAnnonce status,
+                                                            String searchedUsername, Float minPrice, Float maxPrice,
+                                                            TypeBien typeBien, Rooms rooms, LeaseDuration leaseDuration) throws ObjectNotFoundException {
+        Specification<Annonce> spec = Specification.where(null);
+
+            spec = spec.and(AnnonceSearchSpecification.filterByUserId(getAuthenticatedUser()));
+
+        spec.and(buildSpecification(query, type, status, searchedUsername,
+                minPrice, maxPrice, typeBien, rooms, leaseDuration))  ;
+        return spec;
+
+    }
     public Specification<Annonce> buildSpecification(String query, TypeAnnonce type, StatusAnnonce status,
                                                       String searchedUsername, Float minPrice, Float maxPrice,
                                                       TypeBien typeBien, Rooms rooms, LeaseDuration leaseDuration) {
@@ -510,6 +542,7 @@ public class AnnonceService {
         if (searchedUsername != null && !searchedUsername.isEmpty()) {
             spec = spec.and(AnnonceSearchSpecification.filterByUsername(searchedUsername));
         }
+
         if (type != null) {
             spec = spec.and(AnnonceSearchSpecification.filterByType(type));
         }
