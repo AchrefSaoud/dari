@@ -57,19 +57,16 @@ public class AnnonceSearchSpecification {
 
     // Filter by username (case insensitive)
     public static Specification<Annonce> filterByUsername(String username) {
-        return (root, query, criteriaBuilder) -> {
-            if (username == null || username.isEmpty()) {
-                return null;
-            }
-            Join<Annonce, User> userJoin = root.join("user"); // Perform the join
-            return criteriaBuilder.equal(
-                    criteriaBuilder.lower(userJoin.get("username")),
-                    username.toLowerCase()
-            );
-        };
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+                criteriaBuilder.lower(root.get("username")),
+                username.toLowerCase()
+        );
     }
 
-
+    public static Specification<Annonce> filterByUserId(User user) {
+        return (root, query, criteriaBuilder) ->
+                user == null ? null : criteriaBuilder.equal(root.get("user"), user);
+    }
     public static Specification<Annonce> filterByGeolocalisation(Double latitude, Double longitude, Double radius) {
         return (root, query, cb) -> {
             if (latitude == null || longitude == null || radius == null) {
