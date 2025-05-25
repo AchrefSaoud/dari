@@ -57,6 +57,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/visites/**").permitAll()
                     .requestMatchers("/api/reclamations/**").permitAll()
+                    .requestMatchers("/api/demande/**").permitAll()
+                .requestMatchers("/api/event/**").permitAll()
                     .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults());

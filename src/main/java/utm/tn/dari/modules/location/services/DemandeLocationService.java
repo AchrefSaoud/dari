@@ -151,6 +151,22 @@ public class DemandeLocationService {
         }
     }
 
+    public void getAllDemandeLocations() throws Exception {
+        try {
+            List<Demande> demandes = this.demandeLocationRepo.findAll();
+            if(demandes.isEmpty()) {
+                throw new ObjectNotFoundException("No demande locations found");
+            }
+            // Process the demandes as needed
+        }catch (Exception e){
+            if(e instanceof ObjectNotFoundException) {
+                throw e;
+            } else {
+                throw new RuntimeException("An error occurred while retrieving all demande locations", e);
+            }
+        }
+    }
+
     public void deleteDemandeLocation(Long id) throws Exception {
         try {
             if(id == null) {
